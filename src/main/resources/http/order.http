@@ -1,0 +1,21 @@
+### 주문 조회 API
+GET http://localhost:8080/api/v1/orders/geonduck
+
+
+### 주문 저장 API
+POST http://localhost:8080/api/v1/orders/add
+Content-Type: application/json
+
+{
+  "userId": "geonduck",
+  "cartItems": [2, 3, 4]
+}
+
+### 주문에 쿠폰 사용 여부 확인 API
+POST http://localhost:8080/api/v1/orders/2/apply-coupon
+Content-Type: application/json
+
+{
+  "userId": "geonduck",
+  "couponId": 3
+}

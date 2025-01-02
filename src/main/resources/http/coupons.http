@@ -1,0 +1,17 @@
+### 쿠폰 조회 API
+GET http://localhost:8080/api/v1/coupons/geonduck
+Content-Type: application/json
+
+
+### 쿠폰 발급 API
+POST http://localhost:8080/api/v1/coupons/assign
+Content-Type: application/json
+
+{
+  "userId": "geonduck",
+  "amount": 7
+}
+
+### 쿠폰 조회 API
+GET http://localhost:8080/api/v1/coupons/
+Content-Type: application/json
