@@ -14,7 +14,11 @@ public class BalanceRepositoryImpl implements BalanceRepository {
 
     @Override
     public Balance findByUserId(String userId) {
-        return jpaRepository.findByUserId(userId);
+        return jpaRepository.findByUserId(userId)
+                .orElse(Balance.builder()
+                .userId(userId)
+                .amount(0)
+                .build());
     }
 
     @Override

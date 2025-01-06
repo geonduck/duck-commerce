@@ -12,37 +12,76 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
-    private static final long MAX_BALANCE = 10_000_000;
+
 
     private final BalanceRepository balanceRepository;
     private final BalanceHistoryRepository balanceHistoryRepository;
 
     @Transactional
-    public BalanceDomainDto charge(BalanceDomainDto dto) {
-        dto.validate();
-
-        Balance balance = balanceRepository.findByUserId(dto.userId());
-        if (balance == null) {
-            balance = Balance.builder()
-                    .userId(dto.userId())
-                    .amount(0)
-                    .build();
-        }
-
-        if (balance.getAmount() + dto.amount() > MAX_BALANCE) {
-            throw new IllegalStateException("최대 보유 가능 금액은 10,000,000원 입니다");
-        }
-
-        balance.charge(dto.amount());
-        Balance savedBalance = balanceRepository.save(balance);
-
-        balanceHistoryRepository.save(BalanceHistory.builder()
-                .userId(dto.userId())
-                .amountChanged(dto.amount())
-                .status(BalanceStaut.CHARGE)
-                .build()
-        );
-
-        return BalanceDomainDto.from(savedBalance);
+    public BalanceDomainDto getBalance(BalanceDomainDto dto) {
+        return BalanceDomainDto.from(balanceRepository.findByUserId(dto.userId()));
     }
+
+    @Transactional
+    public BalanceDomainDto charge(BalanceDomainDto dto) {
+        BalanceStatus status = BalanceStatus.CHARGE;
+        try {
+            dto.validateCharge();
+
+            Balance balance = balanceRepository.findByUserId(dto.userId());
+            balance.charge(dto.amount());
+
+            Balance savedBalance = balanceRepository.save(balance);
+            return BalanceDomainDto.from(savedBalance);
+        } catch (Exception e) {
+            status = BalanceStatus.FAIL;
+            throw new IllegalStateException(e.getMessage());
+        } finally {
+            insertHistory(dto, status);
+        }
+    }
+
+    @Transactional
+    public BalanceDomainDto use(BalanceDomainDto dto) {
+        BalanceStatus status = BalanceStatus.USE;
+        try {
+            dto.validateUse();
+
+            Balance balance = balanceRepository.findByUserId(dto.userId());
+            balance.use(dto.amount());
+
+            Balance savedBalance = balanceRepository.save(balance);
+            return BalanceDomainDto.from(savedBalance);
+        } catch (Exception e) {
+            status = BalanceStatus.FAIL;
+            throw new IllegalStateException(e.getMessage());
+        } finally {
+            insertHistory(dto, status);
+        }
+
+    }
+
+    @Transactional
+    public BalanceDomainDto cancelUse(BalanceDomainDto dto) {
+        BalanceStatus status = BalanceStatus.CANCEL;
+        try {
+            Balance balance = balanceRepository.findByUserId(dto.userId());
+            balance.cancelUse(dto.amount());
+
+            Balance savedBalance = balanceRepository.save(balance);
+            return BalanceDomainDto.from(savedBalance);
+        } catch (Exception e) {
+            status = BalanceStatus.FAIL;
+            throw new IllegalStateException(e.getMessage());
+        } finally {
+            insertHistory(dto, status);
+        }
+
+
+    }
+
+    private void insertHistory(BalanceDomainDto dto, BalanceStatus status) {
+        balanceHistoryRepository.save(BalanceHistory.builder().userId(dto.userId()).amountChanged(dto.amount()).status(status).build());
+    }
+
 }

@@ -13,7 +13,7 @@ public record BalanceDomainDto (
         );
     }
 
-    public void validate() {
+    public void validateCharge() {
         if (amount < 10_000) {
             throw new IllegalStateException("최소 충전 금액은 10,000원 입니다");
         }
@@ -22,6 +22,12 @@ public record BalanceDomainDto (
         }
         if (amount % 10_000 != 0) {
             throw new IllegalStateException("충전 금액은 10,000원 단위여야 합니다");
+        }
+    }
+
+    public void validateUse(){
+        if (amount <= 0) {
+            throw new IllegalStateException("사용금액은 0원 이상이여야 합니다");
         }
     }
 }
