@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
@@ -15,13 +17,8 @@ public class ProductRepositoryImpl implements ProductRepository {
     private final ProductJpaRepository jpaRepository;
 
     @Override
-    public Product findById(long id) {
-        return jpaRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다. id=" + id));
-    }
-
-    @Override
-    public int getActualStock(long id) {
-        return jpaRepository.getActualStock(id);
+    public Optional<Product> findById(long id) {
+        return jpaRepository.findById(id);
     }
 
     @Override

@@ -23,6 +23,5 @@ public class Product extends BaseTimeEntity {
 
     String name;    // 상품 이름
     double price;   // 상품 가격
-    int stock;  // 재고
 
 }

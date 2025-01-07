@@ -1,9 +1,6 @@
 package kr.hhplus.be.server.domain.balance.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.BaseTimeEntity;
 import kr.hhplus.be.server.domain.balance.BalanceStatus;
 import lombok.AllArgsConstructor;
@@ -24,5 +21,7 @@ public class BalanceHistory extends BaseTimeEntity {
 
     private String userId;  // 사용자 ID
     private double amountChanged;   // 변경 금액
+
+    @Enumerated(EnumType.STRING)
     private BalanceStatus status;    // 변화 상태
 }

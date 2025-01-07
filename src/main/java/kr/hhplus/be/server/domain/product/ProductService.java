@@ -2,39 +2,66 @@ package kr.hhplus.be.server.domain.product;
 
 
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
+import kr.hhplus.be.server.domain.product.dto.ProductListDto;
+import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
+import kr.hhplus.be.server.domain.product.dto.StockDto;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ProductService {
-
     private final ProductRepository productRepository;
+    private final StockService stockService;
 
     public ProductDomainDto getProduct(Long productId) {
-        Product product = productRepository.findById(productId);
+        // 1. 상품 정보 조회
+        Product product = findProductById(productId);
 
-        ProductDomainDto productDto = ProductDomainDto.form(product);
-        productDto.validateStock();
+        // 2. 재고 정보 조회
+        StockDto stock = stockService.getStock(productId);
 
-        return productDto;
+        return ProductDomainDto.of(product, stock);
     }
 
-    public void verifyProductStock(Long productId) {
-        Product product = productRepository.findById(productId);
-
-        ProductDomainDto productDto = ProductDomainDto.form(product);
-        int actualStock = productRepository.getActualStock(productId);
-
-        productDto.validateStockMatch(actualStock);
+    @Transactional
+    public void updateProduct(Long productId, ProductUpdateDto request) {
+        Product product = findProductById(productId);
+        // 재고 수정이 필요한 경우 StockService를 통해 처리
+        if (request.stockAdjustment() != 0) {
+            if (request.stockAdjustment() > 0) {
+                stockService.increase(productId, request.stockAdjustment());
+            } else {
+                stockService.decrease(productId, Math.abs(request.stockAdjustment()));
+            }
+        }
     }
 
+    private Product findProductById(Long productId) {
+        return productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+    }
 
-    public Page<ProductDomainDto> getProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(ProductDomainDto::form);
+    public Page<ProductListDto> getProducts(Pageable pageable) {
+        Page<Product> products = productRepository.findAll(pageable);
+
+        // 상품 ID 리스트로 재고 정보 일괄 조회
+        List<Long> productIds = products.getContent().stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+        Map<Long, StockDto> stockMap = stockService.getStocksByProductIds(productIds);
+
+        return products.map(product ->
+                ProductListDto.of(product, stockMap.get(product.getId()))
+        );
     }
 }
