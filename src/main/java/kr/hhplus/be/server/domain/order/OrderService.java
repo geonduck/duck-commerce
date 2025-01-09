@@ -94,4 +94,7 @@ public class OrderService {
     }
 
 
+    public List<OrderItem> getOrderItems(Long orderId) {
+        return orderItemRepository.findByOrderId(orderId);
+    }
 }

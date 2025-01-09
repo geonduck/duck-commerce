@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.infra.order.repository;
 
+import kr.hhplus.be.server.domain.order.dto.OrderItemResponse;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.infra.order.jpaRepository.OrderItemJpaRepository;
