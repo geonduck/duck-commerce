@@ -4,7 +4,7 @@ import kr.hhplus.be.server.domain.product.entity.Stock;
 
 public record StockDto(
         Long productId,
-        long quantity
+        int quantity
 ) {
     public static StockDto from(Stock stock) {
         return new StockDto(

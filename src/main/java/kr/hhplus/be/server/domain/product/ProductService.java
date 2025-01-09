@@ -35,14 +35,14 @@ public class ProductService {
     }
 
     @Transactional
-    public void updateProduct(Long productId, ProductUpdateDto request) {
+    public void updateProduct(Long productId, int amonut) {
         Product product = findProductById(productId);
         // 재고 수정이 필요한 경우 StockService를 통해 처리
-        if (request.stockAdjustment() != 0) {
-            if (request.stockAdjustment() > 0) {
-                stockService.increase(productId, request.stockAdjustment());
+        if (amonut != 0) {
+            if (amonut > 0) {
+                stockService.increase(productId, amonut);
             } else {
-                stockService.decrease(productId, Math.abs(request.stockAdjustment()));
+                stockService.decrease(productId, amonut);
             }
         }
     }

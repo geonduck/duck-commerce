@@ -6,7 +6,7 @@ public record ProductDomainDto(
         Long id,
         String name,
         double price,
-        long stockQuantity
+        int stockQuantity
 ) {
     public static ProductDomainDto of(Product product, StockDto stock) {
         return new ProductDomainDto(

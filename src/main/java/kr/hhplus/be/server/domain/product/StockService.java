@@ -18,19 +18,19 @@ public class StockService {
     private final StockRepository stockRepository;
 
     @Transactional
-    public void decrease(Long productId, long quantity) {
+    public void decrease(Long productId, int quantity) {
         Stock stock = findStockByProductId(productId);
         stock.decrease(quantity);
     }
 
     @Transactional
-    public void increase(Long productId, long quantity) {
+    public void increase(Long productId, int quantity) {
         Stock stock = findStockByProductId(productId);
         stock.increase(quantity);
     }
 
     @Transactional
-    public void cancel(Long productId, long quantity) {
+    public void cancel(Long productId, int quantity) {
         Stock stock = findStockByProductId(productId);
         stock.increase(quantity);
     }

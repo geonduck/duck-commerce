@@ -123,7 +123,7 @@ class ProductServiceUnitTest {
         when(productRepository.findById(productId)).thenReturn(Optional.ofNullable(product));
 
         // when
-        productService.updateProduct(productId, updateDto);
+        productService.updateProduct(productId, updateDto.stockAdjustment());
 
         // then
         verify(stockService).increase(productId, 50);
