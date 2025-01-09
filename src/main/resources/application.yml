@@ -16,7 +16,7 @@ spring:
     generate-ddl: false
     show-sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
@@ -29,3 +29,12 @@ spring:
     url: jdbc:mysql://localhost:3396/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
     username: application
     password: application
+
+springdoc:
+  override-with-generic-response: true
+  default-consumes-media-type: application/json # 소비 미디어 타입
+  default-produces-media-type: application/json # 생산 미디어 타입
+  swagger-ui:
+    operations-sorter: method # operations 정렬 방식은 HTTP Method 순
+    tags-sorter: alpha # tag 정렬 방식은 알파벳 순
+    path: "swagger.html" # http://localhost:8080/swagger.html로 접속 가능

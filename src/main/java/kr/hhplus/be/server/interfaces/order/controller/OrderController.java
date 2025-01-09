@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.interfaces.order.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.interfaces.order.dto.OrderRequestDto;
 import kr.hhplus.be.server.interfaces.order.dto.OrderResponseDto;
@@ -15,6 +18,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/orders")
+@Tag(name = "주문 관련 API", description = "주문 관련 REST API에 대한 명세를 재공 합니다")
 public class OrderController {
 
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);
@@ -22,6 +26,8 @@ public class OrderController {
     /**
      * TODO - 특정 유저의 주문 조회하는 기능을 작성해주세요.
      */
+    @Operation(summary = "주문 조회", description = "특정 유저의 주문을 조회하는 기능",
+            parameters = {@Parameter(name = "userId", description = "사용자 ID")})
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<List<OrderResponseDto>>> findById (@PathVariable(name = "userId") String userId) {
 
@@ -37,25 +43,15 @@ public class OrderController {
     /**
      * TODO - 특정 유저의 주문을 생성하는 기능을 작성해주세요.
      */
+    @Operation(summary = "주문 생성", description = "특정 유저의 주문을 생성하는 기능",
+            parameters = {@Parameter(name = "OrderRequestDto", description = "사용자 ID, 주문아이템, 쿠폰 ID")})
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<OrderResponseDto>> save(@RequestBody OrderRequestDto requestDto) {
 
         OrderResponseDto responseDto =
-                new OrderResponseDto(requestDto.userId(), 5, "쿠폰 사용 여부 확인");
+                new OrderResponseDto(requestDto.userId(), 5, "쿠폰 사용");
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));
     }
 
-    /**
-     * TODO - 특정 유저의 주문에 쿠폰 사용 여부 확인하는 기능을 작성해주세요.
-     */
-    @PostMapping("/{orderId}/apply-coupon")
-    public ResponseEntity<ApiResponse<OrderResponseDto>> useCoupon(@PathVariable(name = "orderId") int orderId,
-                                                                   @RequestBody OrderRequestDto requestDto) {
-
-        OrderResponseDto responseDto =
-                new OrderResponseDto(requestDto.userId(), orderId, "5천원 할인");
-
-        return ResponseEntity.ok(ApiResponse.success(responseDto));
-    }
 }
