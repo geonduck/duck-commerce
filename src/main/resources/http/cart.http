@@ -1,0 +1,13 @@
+### 장바구니 조회 API
+GET http://localhost:8080/api/v1/cart/geonduck
+
+
+### 장바구니 저장 API
+POST http://localhost:8080/api/v1/cart/add
+Content-Type: application/json
+
+{
+  "userId": "geonduck",
+  "productId": 2,
+  "amount": 7
+}
