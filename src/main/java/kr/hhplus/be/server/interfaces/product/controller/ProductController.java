@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.interfaces.product.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.interfaces.product.dto.ProductResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/products")
+@Tag(name = "상품 관련 API", description = "상품 관련 REST API에 대한 명세를 재공 합니다")
 public class ProductController {
 
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
@@ -21,6 +25,7 @@ public class ProductController {
     /**
      * TODO - 상품을 조회하는 기능을 작성해주세요.
      */
+    @Operation(summary = "상품 조회", description = "상품을 조회하는 기능")
     @GetMapping("/")
     public ResponseEntity<ApiResponse<List<ProductResponseDto>>> getList () {
 
@@ -38,6 +43,7 @@ public class ProductController {
     /**
      * TODO - 상위 5개 상품을 조회하는 기능을 작성해주세요.
      */
+    @Operation(summary = "상품 조회 (top5)", description = "상위 5개 상품을 조회하는 기능")
     @GetMapping("/top5")
     public ResponseEntity<ApiResponse<List<ProductResponseDto>>> getTopList() {
 
