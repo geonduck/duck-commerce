@@ -6,6 +6,8 @@ import kr.hhplus.be.server.infra.balance.jpaRepository.BalanceJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class BalanceRepositoryImpl implements BalanceRepository {
@@ -13,12 +15,8 @@ public class BalanceRepositoryImpl implements BalanceRepository {
     private final BalanceJpaRepository jpaRepository;
 
     @Override
-    public Balance findByUserId(String userId) {
-        return jpaRepository.findByUserId(userId)
-                .orElse(Balance.builder()
-                .userId(userId)
-                .amount(0)
-                .build());
+    public Optional<Balance> findByUserId(String userId) {
+        return jpaRepository.findByUserId(userId);
     }
 
     @Override

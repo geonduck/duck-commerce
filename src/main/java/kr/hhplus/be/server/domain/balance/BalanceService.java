@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.entity.BalanceHistory;
 import kr.hhplus.be.server.domain.balance.repository.BalanceHistoryRepository;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
+import kr.hhplus.be.server.domain.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +18,13 @@ public class BalanceService {
     private final BalanceRepository balanceRepository;
     private final BalanceHistoryRepository balanceHistoryRepository;
 
+    private Balance findBalanceByUserId(String userId) {
+        return balanceRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+    }
+
     @Transactional
     public BalanceDomainDto getBalance(BalanceDomainDto dto) {
-        return BalanceDomainDto.from(balanceRepository.findByUserId(dto.userId()));
+        return BalanceDomainDto.from(findBalanceByUserId(dto.userId()));
     }
 
     @Transactional
@@ -28,7 +33,7 @@ public class BalanceService {
         try {
             dto.validateCharge();
 
-            Balance balance = balanceRepository.findByUserId(dto.userId());
+            Balance balance = findBalanceByUserId(dto.userId());
             balance.charge(dto.amount());
 
             Balance savedBalance = balanceRepository.save(balance);
@@ -47,7 +52,7 @@ public class BalanceService {
         try {
             dto.validateUse();
 
-            Balance balance = balanceRepository.findByUserId(dto.userId());
+            Balance balance = findBalanceByUserId(dto.userId());
             balance.use(dto.amount());
 
             Balance savedBalance = balanceRepository.save(balance);
@@ -65,7 +70,7 @@ public class BalanceService {
     public BalanceDomainDto cancelUse(BalanceDomainDto dto) {
         BalanceStatus status = BalanceStatus.CANCEL;
         try {
-            Balance balance = balanceRepository.findByUserId(dto.userId());
+            Balance balance = findBalanceByUserId(dto.userId());
             balance.cancelUse(dto.amount());
 
             Balance savedBalance = balanceRepository.save(balance);
