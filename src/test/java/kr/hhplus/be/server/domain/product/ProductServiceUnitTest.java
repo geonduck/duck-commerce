@@ -5,7 +5,9 @@ import kr.hhplus.be.server.domain.product.dto.ProductListDto;
 import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
 import kr.hhplus.be.server.domain.product.dto.StockDto;
 import kr.hhplus.be.server.domain.product.entity.Product;
+import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
+import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
@@ -34,6 +38,9 @@ class ProductServiceUnitTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private StockRepository stockRepository;
 
     @Mock
     private StockService stockService;
@@ -148,14 +155,26 @@ class ProductServiceUnitTest {
             int increaseAmount = 10;
 
             when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-
-            // when
-            productService.updateProduct(productId, increaseAmount);
+            Stock stock = createStock(productId, 100);  // 초기 재고 100
+            lenient().when(stockRepository.findByProductId(productId)).thenReturn(Optional.of(stock));
+            doAnswer(invocation -> {
+                ProductUpdateDto dto = invocation.getArgument(0);
+                if (dto.amount() > 0) {
+                    stockService.increase(stock, dto.amount());
+                } else {
+                    stockService.decrease(stock, dto.amount());
+                }
+                return null;
+            }).when(stockService).adjust(any(ProductUpdateDto.class));
+            productService.updateProduct(new ProductUpdateDto(productId, increaseAmount));
 
             // then
-            verify(stockService).increase(productId, increaseAmount);
+            verify(stockService).adjust(new ProductUpdateDto(productId, increaseAmount));
+            verify(stockService).increase(eq(stock), eq(increaseAmount));
             verifyNoMoreInteractions(stockService);
         }
+
+
 
         @Test
         @DisplayName("재고 감소 수정이 성공적으로 처리된다")
@@ -164,14 +183,26 @@ class ProductServiceUnitTest {
             Long productId = 1L;
             Product product = createProduct(productId, "테스트상품", 1000.0);
             int decreaseAmount = -10;
-
             when(productRepository.findById(productId)).thenReturn(Optional.of(product));
+            Stock stock = createStock(productId, 100);  // 초기 재고 100
+            lenient().when(stockRepository.findByProductId(productId)).thenReturn(Optional.of(stock));
+
+            doAnswer(invocation -> {
+                ProductUpdateDto dto = invocation.getArgument(0);
+                if (dto.amount() > 0) {
+                    stockService.increase(stock, dto.amount());
+                } else {
+                    stockService.decrease(stock, dto.amount());
+                }
+                return null;
+            }).when(stockService).adjust(any(ProductUpdateDto.class));
 
             // when
-            productService.updateProduct(productId, decreaseAmount);
+            productService.updateProduct(new ProductUpdateDto(productId, decreaseAmount));
 
             // then
-            verify(stockService).decrease(productId, decreaseAmount);
+            verify(stockService).adjust(new ProductUpdateDto(productId, decreaseAmount));
+            verify(stockService).decrease(eq(stock), eq(decreaseAmount));
             verifyNoMoreInteractions(stockService);
         }
 
@@ -184,11 +215,12 @@ class ProductServiceUnitTest {
 
             when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
-            // when
-            productService.updateProduct(productId, 0);
-
-            // then
-            verifyNoInteractions(stockService);
+            // when & then
+            IllegalStateException exception = assertThrows(
+                    IllegalStateException.class,
+                    () -> productService.updateProduct(new ProductUpdateDto(productId, 0))
+            );
+            assertEquals("변경할 수량이 없습니다", exception.getMessage());
         }
     }
 
@@ -197,6 +229,12 @@ class ProductServiceUnitTest {
                 .id(id)
                 .name(name)
                 .price(price)
+                .build();
+    }
+    private Stock createStock(Long productId, int quantity) {
+        return Stock.builder()
+                .productId(productId)
+                .quantity(quantity)
                 .build();
     }
 }

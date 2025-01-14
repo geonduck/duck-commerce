@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.product;
 
+import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
 import kr.hhplus.be.server.domain.product.dto.StockDto;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
@@ -18,20 +19,12 @@ public class StockService {
     private final StockRepository stockRepository;
 
     @Transactional
-    public void decrease(Long productId, int quantity) {
-        Stock stock = findStockByProductId(productId);
+    public void decrease(Stock stock, int quantity) {
         stock.decrease(quantity);
     }
 
     @Transactional
-    public void increase(Long productId, int quantity) {
-        Stock stock = findStockByProductId(productId);
-        stock.increase(quantity);
-    }
-
-    @Transactional
-    public void cancel(Long productId, int quantity) {
-        Stock stock = findStockByProductId(productId);
+    public void increase(Stock stock, int quantity) {
         stock.increase(quantity);
     }
 
@@ -52,5 +45,14 @@ public class StockService {
                         Stock::getProductId,
                         StockDto::from
                 ));
+    }
+
+    public void adjust(ProductUpdateDto updateDto) {
+        Stock stock = findStockByProductId(updateDto.productId());
+        if (updateDto.amount() > 0) {
+            increase(stock, updateDto.amount());
+        } else {
+            decrease(stock, updateDto.amount());
+        }
     }
 }

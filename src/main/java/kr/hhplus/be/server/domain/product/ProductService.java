@@ -25,30 +25,20 @@ public class ProductService {
     private final StockService stockService;
 
     public ProductDomainDto getProduct(Long productId) {
-        // 1. 상품 정보 조회
         Product product = findProductById(productId);
-
-        // 2. 재고 정보 조회
         StockDto stock = stockService.getStock(productId);
-
         return ProductDomainDto.of(product, stock);
     }
 
     @Transactional
-    public void updateProduct(Long productId, int amonut) {
-        Product product = findProductById(productId);
-        // 재고 수정이 필요한 경우 StockService를 통해 처리
-        if (amonut != 0) {
-            if (amonut > 0) {
-                stockService.increase(productId, amonut);
-            } else {
-                stockService.decrease(productId, amonut);
-            }
-        }
+    public void updateProduct(ProductUpdateDto updateDto) {
+        Product product = findProductById(updateDto.productId());
+        updateDto.validateUpdate();
+        stockService.adjust(updateDto);
     }
 
     private Product findProductById(Long productId) {
-        return productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+        return productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다"));
     }
 
     public Page<ProductListDto> getProducts(Pageable pageable) {
