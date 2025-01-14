@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
+import kr.hhplus.be.server.domain.coupon.dto.CouponDto;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.entity.CouponAssignment;
 import kr.hhplus.be.server.domain.coupon.repository.CouponAssignmentRepository;
@@ -53,7 +55,7 @@ public class CouponServiceUnitTest {
             when(couponRepository.findAll(pageable)).thenReturn(couponPage);
 
             // when
-            Page<Coupon> result = couponService.getAllCoupons(pageable);
+            Page<CouponDto> result = couponService.getAllCoupons(pageable);
 
             // then
             assertNotNull(result);
@@ -61,10 +63,9 @@ public class CouponServiceUnitTest {
             assertEquals(1, result.getTotalPages());
             assertEquals(2, result.getContent().size());
 
-            Coupon firstCoupon = result.getContent().get(0);
-            assertEquals("10% 할인 쿠폰", firstCoupon.getName());
-            assertEquals(1000, firstCoupon.getDiscountAmount());
-            assertEquals(100, firstCoupon.getMaxIssuance());
+            CouponDto firstCoupon = result.getContent().get(0);
+            assertEquals("10% 할인 쿠폰", firstCoupon.name());
+            assertEquals(1000, firstCoupon.discountAmount());
         }
 
         @Test
@@ -80,16 +81,15 @@ public class CouponServiceUnitTest {
             when(couponAssignmentRepository.findByUserId(TEST_USER_ID, pageable)).thenReturn(assignmentPage);
 
             // when
-            Page<CouponAssignment> result = couponService.getUserCoupons(TEST_USER_ID, pageable);
+            Page<CouponAssignmentDto> result = couponService.getUserCoupons(TEST_USER_ID, pageable);
 
             // then
             assertNotNull(result);
             assertEquals(2, result.getTotalElements());
 
-            CouponAssignment firstAssignment = result.getContent().get(0);
-            assertEquals(TEST_USER_ID, firstAssignment.getUserId());
-            assertEquals(CouponStatus.ISSUED, firstAssignment.getStatus());
-            assertEquals("10% 할인 쿠폰", firstAssignment.getCoupon().getName());
+            CouponAssignmentDto firstAssignment = result.getContent().get(0);
+            assertEquals(TEST_USER_ID, firstAssignment.userId ());
+            assertEquals("10% 할인 쿠폰", firstAssignment.coupon().name());
         }
     }
 
@@ -106,15 +106,18 @@ public class CouponServiceUnitTest {
             when(couponAssignmentRepository.countByCouponId(TEST_COUPON_ID)).thenReturn(5);
             when(couponAssignmentRepository.existsByCouponIdAndUserId(TEST_COUPON_ID, TEST_USER_ID))
                     .thenReturn(false);
+            CouponAssignment assignment = createCouponAssignment(1L, TEST_USER_ID, coupon, CouponStatus.ISSUED);
+            when(couponAssignmentRepository.save(any(CouponAssignment.class)))
+                    .thenReturn(assignment);
 
             // when
-            CouponAssignment result = couponService.assignCoupon(TEST_COUPON_ID, TEST_USER_ID);
+            CouponAssignmentDto result = couponService.assignCoupon(TEST_COUPON_ID, TEST_USER_ID);
 
             // then
             assertNotNull(result);
-            assertEquals(TEST_USER_ID, result.getUserId());
-            assertEquals(CouponStatus.ISSUED, result.getStatus());
-            assertEquals(coupon, result.getCoupon());
+            assertEquals(TEST_USER_ID, result.userId());
+            assertEquals(CouponStatus.ISSUED.name(), result.status());
+            assertEquals(coupon.getId(), result.coupon().id());
         }
 
         @Test
@@ -164,10 +167,10 @@ public class CouponServiceUnitTest {
             when(couponAssignmentRepository.save(assignment)).thenReturn(assignment);
 
             // when
-            CouponAssignment result = couponService.useCoupon(1L, TEST_USER_ID);
+            CouponAssignmentDto result = couponService.useCoupon(1L, TEST_USER_ID);
 
             // then
-            assertEquals(CouponStatus.USED, result.getStatus());
+            assertEquals(CouponStatus.USED.name(), result.status());
             verify(couponAssignmentRepository).save(assignment);
         }
 
