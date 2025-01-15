@@ -6,7 +6,7 @@ public record ProductListDto(
         Long id,
         String name,
         double price,
-        long stockQuantity
+        int stockQuantity
 ) {
     public static ProductListDto of(Product product, StockDto stock) {
         return new ProductListDto(
