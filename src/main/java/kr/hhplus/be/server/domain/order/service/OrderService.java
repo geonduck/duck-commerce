@@ -111,4 +111,17 @@ public class OrderService {
                 .map(order -> buildOrderResponse(order, getOrderItems(order.getId())))
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void updateOrderStatus(Long orderId, OrderStatus status) {
+        // 1. 주문 조회
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new DomainException(OrderErrorCode.NOT_FIND_EXCEPTION));
+
+        // 2. 상태 변경
+        order.setOrderStatus(status);
+
+        // 3. 저장
+        orderRepository.save(order);
+    }
 }

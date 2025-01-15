@@ -43,7 +43,7 @@ public class OrderFacade {
                 products,
                 requestDto.userId());
 
-        // 3. 주문 생성 로직 위임
+        // 3. 주문 생성
         OrderResponse orderResponse = orderService.createOrder(requestDto.userId(), calculationResult);
 
         // 4. 응답 DTO 반환
@@ -61,7 +61,7 @@ public class OrderFacade {
         CouponAssignmentDto couponAssignment = couponService.useCoupon(couponId, userId);
         double discountAmount = couponAssignment.coupon().discountAmount();
 
-        // 3. 할인 적용 로직 위임
+        // 3. 할인 적용
         OrderResponse orderResponse = orderService.applyDiscount(order, discountAmount);
 
         // 4. 응답 DTO 반환

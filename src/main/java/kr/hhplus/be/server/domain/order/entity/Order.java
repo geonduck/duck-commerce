@@ -37,6 +37,10 @@ public class Order extends BaseTimeEntity {
     }
 
     public void cancel() {
-        this.orderStatus = OrderStatus.CANCELED;
+        setOrderStatus(OrderStatus.CANCELED);
+    }
+
+    public void setOrderStatus(OrderStatus status) {
+        this.orderStatus = status;
     }
 }

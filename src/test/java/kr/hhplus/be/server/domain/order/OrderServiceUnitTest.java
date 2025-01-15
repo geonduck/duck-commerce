@@ -16,7 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,5 +97,35 @@ class OrderServiceUnitTest {
         assertEquals(OrderErrorCode.NOT_FIND_EXCEPTION.getMessage(), exception.getMessage());
 
         verify(orderRepository).findById(invalidOrderId);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 성공")
+    void testUpdateOrderStatus_Success() {
+        // Arrange
+        Long orderId = 1L;
+        OrderStatus newStatus = OrderStatus.COMPLETED;
+        Order mockOrder = new Order();
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));
+
+        // Act
+        orderService.updateOrderStatus(orderId, newStatus);
+
+        // Assert
+        assertThat(mockOrder.getOrderStatus()).isEqualTo(newStatus);
+        verify(orderRepository, times(1)).save(mockOrder);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 주문 상태 변경 시 실패")
+    void testUpdateOrderStatus_OrderNotFound() {
+        // Arrange
+        Long orderId = 1L;
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> orderService.updateOrderStatus(orderId, OrderStatus.COMPLETED))
+                .isInstanceOf(DomainException.class)
+                .hasMessage(OrderErrorCode.NOT_FIND_EXCEPTION.getMessage());
     }
 }

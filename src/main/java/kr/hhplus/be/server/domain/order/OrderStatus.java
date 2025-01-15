@@ -1,5 +1,5 @@
 package kr.hhplus.be.server.domain.order;
 
 public enum OrderStatus {
-    PENDING, COMPLETED, CANCELED
+    PENDING, COMPLETED, PAYMENT_FAILED, CANCELED
 }
