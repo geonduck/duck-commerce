@@ -12,8 +12,6 @@ import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -88,14 +86,6 @@ public class PaymentFacade {
         for (OrderItemResponse item : orderItems) {
             productDailySalesService.updateDailySales(item.productId(), item.amount());
         }
-    }
-
-    public List<PaymentResponseDto> getPaymentListByUser(String userId, Pageable pageable) {
-        // 1. PaymentService에서 결제 리스트 조회
-        Page<PaymentDomainDto> paymentPage = paymentService.getPaymentsByUser(userId, pageable);
-
-        // 2. DTO 변환 및 반환
-        return paymentPage.map(this::toPaymentResponseDto).getContent();
     }
 
     /**

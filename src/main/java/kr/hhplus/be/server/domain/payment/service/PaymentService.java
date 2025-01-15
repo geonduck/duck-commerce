@@ -7,8 +7,6 @@ import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.entity.Payment;
 import kr.hhplus.be.server.domain.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,9 +52,4 @@ public class PaymentService {
                 .orElseThrow(() -> new DomainException(PaymentErrorCode.NOT_FIND_EXCEPTION));
     }
 
-    @Transactional(readOnly = true)
-    public Page<PaymentDomainDto> getPaymentsByUser(String userId, Pageable pageable) {
-        Page<Payment> paymentPage = paymentRepository.findByUserId(userId, pageable);
-        return paymentPage.map(PaymentDomainDto::of);
-    }
 }

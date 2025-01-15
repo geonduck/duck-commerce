@@ -8,11 +8,8 @@ import kr.hhplus.be.server.facade.payment.PaymentFacade;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -22,20 +19,6 @@ import java.util.List;
 public class PaymentController {
 
     private final PaymentFacade paymentFacade;
-
-    /**
-     * TODO - 특정 유저의 결제를 조회하는 기능을 작성해주세요.
-     */
-    @Operation(summary = "결제 조회", description = "특정 유저의 결제을 조회하는 기능",
-            parameters = {@Parameter(name = "userId", description = "사용자 ID")})
-    @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<PaymentResponseDto>>> findById(@PathVariable(name = "userId") String userId, Pageable pageable
-    ) {
-        log.info("findById start");
-        List<PaymentResponseDto> paymentList = paymentFacade.getPaymentListByUser(userId, pageable);
-
-        return ResponseEntity.ok(ApiResponse.success(paymentList));
-    }
 
     /**
      * TODO - 특정 유저의 결제를 조회하는 기능을 작성해주세요.
