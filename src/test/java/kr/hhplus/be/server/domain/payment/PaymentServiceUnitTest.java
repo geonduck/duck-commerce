@@ -1,19 +1,13 @@
 package kr.hhplus.be.server.domain.payment;
 
 import kr.hhplus.be.server.domain.DomainException;
-import kr.hhplus.be.server.domain.order.service.OrderService;
-import kr.hhplus.be.server.domain.order.dto.OrderItemResponse;
 import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.entity.Payment;
 import kr.hhplus.be.server.domain.payment.repository.PaymentRepository;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
-import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,16 +17,12 @@ import static org.mockito.Mockito.*;
 public class PaymentServiceUnitTest {
 
     private PaymentRepository paymentRepository;
-    private ProductDailySalesService productDailySalesService;
-    private OrderService orderService;
     private PaymentService paymentService;
 
     @BeforeEach
     void setUp() {
         paymentRepository = mock(PaymentRepository.class);
-        productDailySalesService = mock(ProductDailySalesService.class);
-        orderService = mock(OrderService.class);
-        paymentService = new PaymentService(paymentRepository, productDailySalesService, orderService);
+        paymentService = new PaymentService(paymentRepository);
     }
 
     @Test
@@ -64,40 +54,25 @@ public class PaymentServiceUnitTest {
     }
 
     @Test
-    @DisplayName("결제 상태 업데이트 및 일일 판매량 반영")
-    void testUpdatePaymentStatus_whenCompleted_shouldUpdateDailySales() {
+    @DisplayName("결제 상태 업데이트 테스트 - COMPLETED")
+    void testUpdatePaymentStatus_whenCompleted() {
         // Given
         Long paymentId = 1L;
-        Long orderId = 10L;
-
         Payment payment = Payment.builder()
                 .id(paymentId)
-                .orderId(orderId)
+                .orderId(10L)
                 .paymentAmount(100.0)
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();
 
         when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
 
-        List<OrderItemResponse> orderItems = List.of(
-                new OrderItemResponse(2L, "상품A", 2), // 상품 ID 2, 수량 2
-                new OrderItemResponse(5L, "상품B", 3)  // 상품 ID 5, 수량 3
-        );
-        when(orderService.getOrderItems(orderId)).thenReturn(orderItems);
-
         // When
         paymentService.updatePaymentStatus(paymentId, PaymentStatus.COMPLETED);
 
         // Then
         assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
-
-        verify(productDailySalesService, times(1)).updateDailySales(2L, 2);
-        verify(productDailySalesService, times(1)).updateDailySales(5L, 3);
-
-        ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
-        verify(paymentRepository).save(captor.capture());
-        Payment savedPayment = captor.getValue();
-        assertThat(savedPayment.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        verify(paymentRepository).save(payment);
     }
 
     @Test
