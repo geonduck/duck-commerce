@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.product.service;
 
+import kr.hhplus.be.server.domain.DomainException;
+import kr.hhplus.be.server.domain.product.ProductErrorCode;
 import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
 import kr.hhplus.be.server.domain.product.dto.StockDto;
 import kr.hhplus.be.server.domain.product.entity.Stock;
@@ -29,7 +31,7 @@ public class StockService {
     }
 
     private Stock findStockByProductId(Long productId) {
-        return stockRepository.findByProductId(productId).orElseThrow(() -> new IllegalArgumentException("상품의 재고 정보를 찾을 수 없습니다"));
+        return stockRepository.findByProductId(productId).orElseThrow(() -> new DomainException(ProductErrorCode.NOT_FIND_STOCK_EXCEPTION));
     }
 
     // 재고 조회

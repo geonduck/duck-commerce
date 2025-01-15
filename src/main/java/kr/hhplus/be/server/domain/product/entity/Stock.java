@@ -2,6 +2,8 @@ package kr.hhplus.be.server.domain.product.entity;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.BaseTimeEntity;
+import kr.hhplus.be.server.domain.DomainException;
+import kr.hhplus.be.server.domain.product.ProductErrorCode;
 import lombok.*;
 
 @Entity
@@ -32,13 +34,13 @@ public class Stock extends BaseTimeEntity {
 
     private void validateDecrease(int quantity) {
         if (this.quantity - quantity < 0) {
-            throw new IllegalStateException("재고가 부족합니다");
+            throw new DomainException(ProductErrorCode.SHORTAGE_STOCK_EXCEPTION);
         }
     }
 
     private void validateIncrease(int quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException("증가시킬 재고는 0보다 커야 합니다");
+            throw new DomainException(ProductErrorCode.MINIMUM_STOCK_EXCEPTION);
         }
     }
 }

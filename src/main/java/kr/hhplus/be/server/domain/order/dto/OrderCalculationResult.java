@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.order.dto;
 
+import kr.hhplus.be.server.domain.DomainException;
+import kr.hhplus.be.server.domain.order.OrderErrorCode;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
 
@@ -14,7 +16,7 @@ public record OrderCalculationResult(double totalAmount, List<OrderItem> orderIt
 
         for (OrderItemRequest item : items) {
             // 해당 아이템에 해당하는 상품 정보 검색
-            ProductDomainDto product = products.stream().filter(p -> p.id().equals(item.productId())).findFirst().orElseThrow(() -> new IllegalArgumentException("Product not found for OrderItem"));
+            ProductDomainDto product = products.stream().filter(p -> p.id().equals(item.productId())).findFirst().orElseThrow(() -> new DomainException(OrderErrorCode.NOT_FOUND_PRODUCT_EXCEPTION));
 
             // 상품에 대한 OrderItem 생성
             OrderItem orderItem = OrderItem.builder().productId(product.id()).userId(userId).amount(item.amount()).productName(product.name()) // 상품 이름

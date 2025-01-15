@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.product.service;
 
 
+import kr.hhplus.be.server.domain.DomainException;
+import kr.hhplus.be.server.domain.product.ProductErrorCode;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
 import kr.hhplus.be.server.domain.product.dto.ProductListDto;
 import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
@@ -38,7 +40,7 @@ public class ProductService {
     }
 
     private Product findProductById(Long productId) {
-        return productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다"));
+        return productRepository.findById(productId).orElseThrow(() -> new DomainException(ProductErrorCode.NOT_FIND_EXCEPTION));
     }
 
     public Page<ProductListDto> getProducts(Pageable pageable) {
