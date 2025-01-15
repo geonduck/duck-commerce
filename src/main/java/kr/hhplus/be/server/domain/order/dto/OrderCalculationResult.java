@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record OrderCalculationResult(double totalAmount, List<OrderItem> orderItems) {
-    public static OrderCalculationResult calculateOrderItemsAndTotalAmount(List<OrderItemRequest> items, List<ProductDomainDto> products, String userId) {
+    public static OrderCalculationResult calculateOrderItemsAndTotalAmount(
+            List<OrderItemRequest> items, List<ProductDomainDto> products, String userId) {
         // OrderItem 생성 및 총 금액 계산
         List<OrderItem> orderItems = new ArrayList<>();
         double totalAmount = 0.0;
