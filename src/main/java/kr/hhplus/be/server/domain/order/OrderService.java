@@ -1,7 +1,8 @@
 package kr.hhplus.be.server.domain.order;
 
 import kr.hhplus.be.server.domain.coupon.CouponService;
-import kr.hhplus.be.server.domain.coupon.entity.CouponAssignment;
+import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
+import kr.hhplus.be.server.domain.order.dto.OrderCalculationResult;
 import kr.hhplus.be.server.domain.order.dto.OrderItemRequest;
 import kr.hhplus.be.server.domain.order.dto.OrderResponse;
 import kr.hhplus.be.server.domain.order.dto.OrderItemResponse;
@@ -11,7 +12,7 @@ import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.product.ProductService;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
-import kr.hhplus.be.server.domain.product.dto.StockDto;
+import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,73 +29,78 @@ public class OrderService {
     private final ProductService productService;
     private final CouponService couponService;
 
-    @Transactional
-    public OrderResponse createOrder(String userId, List<OrderItemRequest> items, Long couponAssignmentId) {
-        // 1. 쿠폰 유효성 검증 및 사용 처리
-        double discountAmount = 0;
-        if (couponAssignmentId != null) {
-            CouponAssignment couponAssignment = couponService.useCoupon(couponAssignmentId, userId);
-            discountAmount = couponAssignment.getCoupon().getDiscountAmount();
-        }
-
-        // 2. 상품 정보 조회 및 재고 확인
-        List<ProductDomainDto> products = items.stream()
-                .map(item -> {
-                    ProductDomainDto product = productService.getProduct(item.productId());
-                    productService.updateProduct(item.productId(), -item.amount()); // 재고 차감
-                    return product;
-                })
-                .collect(Collectors.toList());
-
-        // 3. 총 주문 금액 계산
-        double totalAmount = products.stream()
-                .mapToDouble(product -> {
-                    int amount = items.stream()
-                            .filter(item -> item.productId().equals(product.id()))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Invalid product ID"))
-                            .amount();
-                    return product.price() * amount;
-                })
-                .sum();
-
-        // 4. 주문 생성
-        Order order = Order.builder()
-                .userId(userId)
-                .assignmentId(couponAssignmentId)
-                .totalAmount(totalAmount - discountAmount)
-                .discountAmount(discountAmount)
-                .orderStatus(Order.OrderStatus.PENDING)
-                .build();
-        Order saveOrder = orderRepository.save(order);
-
-        // 5. 주문 아이템 생성 및 저장
-        List<OrderItem> orderItems = items.stream()
-                .map(item -> OrderItem.builder()
-                        .orderId(saveOrder.getId())
-                        .productId(item.productId())
-                        .userId(userId)
-                        .amount(item.amount())
-                        .build())
-                .collect(Collectors.toList());
-        orderItemRepository.saveAll(orderItems);
-
-        // 6. 응답 DTO 생성
-        List<OrderItemResponse> orderItemResponses = orderItems.stream()
-                .map(item -> {
-                    ProductDomainDto product = products.stream()
-                            .filter(p -> p.id().equals(item.getProductId()))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("Product not found for OrderItem"));
-                    return new OrderItemResponse(item.getProductId(), product.name(), item.getAmount());
-                })
-                .collect(Collectors.toList());
-
-        return OrderResponse.of(saveOrder, orderItemResponses);
+    private Order findOrderById(Long orderId) {
+        return orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 주문입니다."));
     }
 
+    @Transactional
+    public OrderResponse createOrder(String userId, List<OrderItemRequest> items) {
+        // 1. 상품 재고 확인 및 차감
+        List<ProductDomainDto> products = validateAndUpdateStock(items);
 
-    public List<OrderItem> getOrderItems(Long orderId) {
-        return orderItemRepository.findByOrderId(orderId);
+        // 2. 총 주문 금액 계산
+        OrderCalculationResult calculationResult = OrderCalculationResult.calculateOrderItemsAndTotalAmount(items, products, userId);
+        double totalAmount = calculationResult.totalAmount();
+        List<OrderItem> orderItems = calculationResult.orderItems();
+
+        // 3. 주문 생성 및 저장
+        Order order = Order.builder().userId(userId).totalAmount(totalAmount).discountAmount(0.0) // 쿠폰 적용 전 초기값
+                .orderStatus(Order.OrderStatus.PENDING).build();
+        Order savedOrder = orderRepository.save(order);
+
+        // 4. 주문 아이템 저장
+        List<OrderItem> saveOrderItems = saveOrderItems(savedOrder.getId(), orderItems);
+
+        // 응답 생성
+        return buildOrderResponse(savedOrder, saveOrderItems.stream().map(item -> new OrderItemResponse(item.getProductId(), item.getProductName(), item.getAmount())).collect(Collectors.toList()));
+    }
+
+    private List<OrderItem> saveOrderItems(Long id, List<OrderItem> orderItems) {
+        orderItems.forEach(item -> OrderItem.builder().orderId(id).productId(item.getProductId()).userId(item.getUserId()).amount(item.getAmount()).productName(item.getProductName()).price(item.getPrice()).build());
+        return orderItemRepository.saveAll(orderItems);
+    }
+
+    @Transactional
+    public OrderResponse applyDiscountToOrder(String userId, Long orderId, Long couponAssignmentId) {
+        // 1. 주문 조회
+        Order order = findOrderById(orderId);
+
+        if (!order.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("사용자 권한이 없습니다.");
+        }
+
+        // 2. 쿠폰 사용 및 할인 적용
+        CouponAssignmentDto couponAssignment = couponService.useCoupon(couponAssignmentId, userId);
+        double discountAmount = couponAssignment.coupon().discountAmount();
+
+        // 3. 주문 금액 업데이트
+        double finalAmount = order.getTotalAmount() - discountAmount;
+        order.applyDiscount(discountAmount, finalAmount);
+
+        // 4. 업데이트 후 저장
+        Order updatedOrder = orderRepository.save(order);
+
+        // 5. 응답 생성
+        List<OrderItemResponse> orderItems = getOrderItems(orderId);
+
+        return buildOrderResponse(updatedOrder, orderItems);
+    }
+
+    private List<ProductDomainDto> validateAndUpdateStock(List<OrderItemRequest> items) {
+        return items.stream().map(item -> {
+            ProductDomainDto product = productService.getProduct(item.productId());
+            item.validate(product);
+            productService.updateProduct(new ProductUpdateDto(item.productId(), -item.amount())); // 재고 차감
+            return product;
+        }).collect(Collectors.toList());
+    }
+
+    private OrderResponse buildOrderResponse(Order order, List<OrderItemResponse> orderItems) {
+        return OrderResponse.of(order, orderItems);
+    }
+
+    public List<OrderItemResponse> getOrderItems(Long orderId) {
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        return orderItems.stream().map(item -> new OrderItemResponse(item.getProductId(), item.getProductName(), item.getAmount())).collect(Collectors.toList());
     }
 }

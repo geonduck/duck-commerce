@@ -29,6 +29,11 @@ public class Order extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus; // 주문 상태
 
+    public void applyDiscount(double discountAmount, double finalAmount) {
+        this.discountAmount = discountAmount;
+        this.totalAmount = finalAmount;
+    }
+
     public enum OrderStatus {
         PENDING, COMPLETED, CANCELED
     }

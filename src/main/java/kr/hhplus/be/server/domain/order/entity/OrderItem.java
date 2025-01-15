@@ -18,11 +18,21 @@ public class OrderItem extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private Long orderId; // 주문 ID
 
+    @Column(nullable = false)
     private String userId; // 사용자 ID
 
+    @Column(nullable = false)
     private Long productId; // 상품 ID
 
+    @Column(nullable = false)
     private int amount; // 주문 수량
+
+    @Column(nullable = false)
+    private String productName; // 상품 이름
+
+    @Column(nullable = false)
+    private double price; // 구매 당시 상품 가격 (단가)
 }

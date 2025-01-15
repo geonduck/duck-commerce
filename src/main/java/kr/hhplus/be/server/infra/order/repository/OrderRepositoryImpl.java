@@ -23,4 +23,9 @@ public class OrderRepositoryImpl implements OrderRepository {
     public Order save(Order order) {
         return jpaRepository.save(order);
     }
+
+    @Override
+    public Optional<Order> findById(Long orderId) {
+        return jpaRepository.findById(orderId);
+    }
 }
