@@ -2,26 +2,24 @@ package kr.hhplus.be.server.interfaces.balance.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.config.http.ApiResponse;
+import kr.hhplus.be.server.facade.balance.BalanceFacade;
 import kr.hhplus.be.server.interfaces.balance.dto.BalanceRequestDto;
 import kr.hhplus.be.server.interfaces.balance.dto.BalanceResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/balance")
 @Tag(name = "잔액 관련 API", description = "잔액 관련 REST API에 대한 명세를 재공 합니다")
 public class BalanceController {
 
-    private static final Logger log = LoggerFactory.getLogger(BalanceController.class);
+    private final BalanceFacade balanceFacade;
 
     /**
      * TODO - 특정 유저의 잔액을 조회하는 기능을 작성해주세요.
@@ -30,9 +28,8 @@ public class BalanceController {
             parameters = {@Parameter(name = "userId", description = "사용자 ID")})
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<BalanceResponseDto>> findById (@PathVariable(name = "userId") String userId) {
-
-        BalanceResponseDto responseDto =
-                new BalanceResponseDto("geonduck", 30_000L, LocalDateTime.of(2024, 12, 15, 15, 30));
+        log.info("findById start");
+        BalanceResponseDto responseDto = balanceFacade.getBalance(userId);
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));
     }
@@ -45,8 +42,7 @@ public class BalanceController {
     @PostMapping("/charge")
     public ResponseEntity<ApiResponse<BalanceResponseDto>> save(@RequestBody BalanceRequestDto requestDto) {
 
-        BalanceResponseDto responseDto =
-                new BalanceResponseDto(requestDto.userId(), 30_000L + requestDto.amount(), LocalDateTime.of(2025, 1, 2, 15, 30));
+        BalanceResponseDto responseDto = balanceFacade.chargeBalance(requestDto);
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));
     }
