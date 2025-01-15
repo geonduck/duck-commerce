@@ -31,7 +31,7 @@ public class PaymentController {
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponse<List<PaymentResponseDto>>> findById(@PathVariable(name = "userId") String userId, Pageable pageable
     ) {
-
+        log.info("findById start");
         List<PaymentResponseDto> paymentList = paymentFacade.getPaymentListByUser(userId, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(paymentList));
@@ -46,6 +46,7 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(
             @PathVariable(name = "paymentId") Long paymentId
     ) {
+        log.info("getPayment start");
         PaymentResponseDto response = paymentFacade.getPayment(paymentId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -63,6 +64,7 @@ public class PaymentController {
             @RequestParam String userId,
             @RequestParam Long orderId
     ) {
+        log.info("createPayment start");
         PaymentResponseDto response = paymentFacade.createPayment(userId, orderId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

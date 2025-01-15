@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.infra.coupon.repository;
 
-import kr.hhplus.be.server.domain.coupon.CouponStatus;
 import kr.hhplus.be.server.domain.coupon.entity.CouponAssignment;
 import kr.hhplus.be.server.domain.coupon.repository.CouponAssignmentRepository;
 import kr.hhplus.be.server.infra.coupon.jpaRepository.CouponAssignmentJpaRepository;
@@ -9,8 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -33,11 +30,6 @@ public class CouponAssignmentRepositoryImpl implements CouponAssignmentRepositor
     @Override
     public boolean existsByCouponIdAndUserId(long id, String userId) {
         return jpaRepository.existsByCouponIdAndUserId(id, userId);
-    }
-
-    @Override
-    public List<CouponAssignment> findByUserId(String userId) {
-        return jpaRepository.findByUserId(userId);
     }
 
     @Override

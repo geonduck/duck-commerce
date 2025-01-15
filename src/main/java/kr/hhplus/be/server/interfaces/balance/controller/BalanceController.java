@@ -41,7 +41,7 @@ public class BalanceController {
             parameters = {@Parameter(name = "BalanceRequestDto", description = "사용자 ID, 충전 금액")})
     @PostMapping("/charge")
     public ResponseEntity<ApiResponse<BalanceResponseDto>> save(@RequestBody BalanceRequestDto requestDto) {
-
+        log.info("save start");
         BalanceResponseDto responseDto = balanceFacade.chargeBalance(requestDto);
 
         return ResponseEntity.ok(ApiResponse.success(responseDto));

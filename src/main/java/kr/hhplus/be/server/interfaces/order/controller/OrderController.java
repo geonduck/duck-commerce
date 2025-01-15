@@ -45,7 +45,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
             @RequestBody OrderRequestDto requestDto
     ) {
-        // 주문 생성 로직
+        log.info("createOrder start");
         OrderResponseDto response = orderFacade.createOrder(requestDto);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -62,7 +62,7 @@ public class OrderController {
             @RequestParam String userId,
             @RequestParam Long couponId
     ) {
-        // 주문 할인 적용 로직
+        log.info("applyDiscount start");
         OrderResponseDto response = orderFacade.applyDiscount(userId, orderId, couponId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
