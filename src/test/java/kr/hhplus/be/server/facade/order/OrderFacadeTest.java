@@ -7,7 +7,6 @@ import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.order.dto.OrderResponse;
-import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.service.OrderService;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
 import kr.hhplus.be.server.domain.product.service.ProductService;
@@ -89,8 +88,8 @@ class OrderFacadeTest {
         when(couponService.useCoupon(couponId, userId)).thenReturn(couponAssignmentDto);
 
         // Mock order service
-        Order order = Order.builder().id(orderId).totalAmount(400.0).discountAmount(0.0).build();
-        when(orderService.findOrderById(orderId)).thenReturn(order);
+        OrderResponse order = new OrderResponse(orderId, userId, 1L, 400.0, 0.0, OrderStatus.PENDING, List.of());
+        when(orderService.findByOrderId(orderId)).thenReturn(order);
         when(orderService.applyDiscount(order, 50)).thenReturn(
                 new OrderResponse(orderId, userId, 1L, 350.0, 50.0, OrderStatus.PENDING, List.of())
         );

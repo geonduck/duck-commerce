@@ -93,7 +93,7 @@ class OrderServiceUnitTest {
 
         // When & Then
         DomainException exception = assertThrows(DomainException.class,
-                () -> orderService.findOrderById(invalidOrderId));
+                () -> orderService.findByOrderId(invalidOrderId));
         assertEquals(OrderErrorCode.NOT_FIND_EXCEPTION.getMessage(), exception.getMessage());
 
         verify(orderRepository).findById(invalidOrderId);

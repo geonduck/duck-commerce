@@ -71,7 +71,8 @@ public class OrderService {
      * 쿠폰 적용 로직 - 쿠폰 사용 및 할인 금액 계산은 Facade에서 수행하도록 변경
      */
     @Transactional
-    public OrderResponse applyDiscount(Order order, double discountAmount) {
+    public OrderResponse applyDiscount(OrderResponse orderResponse, double discountAmount) {
+        Order order = findOrderById(orderResponse.orderId());
         // 할인 적용
         double finalAmount = order.getTotalAmount() - discountAmount;
         order.applyDiscount(discountAmount, finalAmount);
@@ -107,6 +108,11 @@ public class OrderService {
     public Order findOrderById(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new DomainException(OrderErrorCode.NOT_FIND_EXCEPTION));
+    }
+
+    public OrderResponse findByOrderId(Long orderId) {
+        Order order = findOrderById(orderId);
+        return buildOrderResponse(order, getOrderItems(order.getId()));
     }
 
     public List<OrderResponse> getOrdersByUserId(String userId) {

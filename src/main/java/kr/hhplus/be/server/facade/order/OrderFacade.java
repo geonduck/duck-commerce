@@ -5,7 +5,6 @@ import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.domain.order.dto.OrderCalculationResult;
 import kr.hhplus.be.server.domain.order.dto.OrderItemRequest;
 import kr.hhplus.be.server.domain.order.dto.OrderResponse;
-import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.service.OrderService;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
 import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
@@ -55,7 +54,7 @@ public class OrderFacade {
      */
     public OrderResponseDto applyDiscount(String userId, Long orderId, Long couponId) {
         // 1. 주문 정보 조회
-        Order order = orderService.findOrderById(orderId);
+        OrderResponse order = orderService.findByOrderId(orderId);
 
         // 2. 쿠폰 사용
         CouponAssignmentDto couponAssignment = couponService.useCoupon(couponId, userId);

@@ -4,12 +4,13 @@ import kr.hhplus.be.server.domain.balance.dto.BalanceDomainDto;
 import kr.hhplus.be.server.domain.balance.service.BalanceService;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.order.dto.OrderItemResponse;
-import kr.hhplus.be.server.domain.order.entity.Order;
+import kr.hhplus.be.server.domain.order.dto.OrderResponse;
 import kr.hhplus.be.server.domain.order.service.OrderService;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
+import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,14 +25,15 @@ public class PaymentFacade {
     private final OrderService orderService;
     private final BalanceService balanceService;
     private final ProductDailySalesService productDailySalesService;
+    private final OrderEventSender orderEventSender;
 
     /**
      * 유저의 주문을 가져와 결제를 생성
      */
     public PaymentResponseDto createPayment(String userId, Long orderId) {
         // 1. 유저의 주문 데이터를 가져오기
-        Order order = orderService.findOrderById(orderId);
-        double paymentAmount = order.getTotalAmount();
+        OrderResponse order = orderService.findByOrderId(orderId);
+        double paymentAmount = order.totalAmount();
 
         // 2. 결제 생성
         PaymentDomainDto payment = paymentService.createPayment(orderId, paymentAmount);
@@ -66,6 +68,7 @@ public class PaymentFacade {
         // 2. 결제 완료 후 추가 비즈니스 로직 실행 (ProductDailySales 갱신)
         if (status == PaymentStatus.COMPLETED) {
             reflectDailySales(payment);
+            sendOrderEvent(payment);
         }
     }
 
@@ -86,6 +89,11 @@ public class PaymentFacade {
         for (OrderItemResponse item : orderItems) {
             productDailySalesService.updateDailySales(item.productId(), item.amount());
         }
+    }
+
+    private void sendOrderEvent(PaymentDomainDto payment) {
+        OrderResponse orderResponse = orderService.findByOrderId(payment.orderId());
+        orderEventSender.send(orderResponse);
     }
 
     /**

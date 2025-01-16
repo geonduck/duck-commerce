@@ -2,7 +2,6 @@ package kr.hhplus.be.server.facade.product;
 
 
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
-import kr.hhplus.be.server.domain.product.dto.ProductUpdateDto;
 import kr.hhplus.be.server.domain.product.entity.ProductDailySales;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import kr.hhplus.be.server.domain.product.service.ProductService;
@@ -42,17 +41,6 @@ public class ProductFacade {
                         product.stockQuantity()
                 ))
                 .collect(Collectors.toList());
-    }
-
-    // 상품 업데이트
-    public void updateProductStock(ProductUpdateDto updateDto) {
-        // 상품 업데이트 처리
-        productService.updateProduct(updateDto);
-
-        // (선택 사항) 판매량 업데이트
-        if (updateDto.amount() < 0) { // 음수는 재고 감소
-            dailySalesService.updateDailySales(updateDto.productId(), Math.abs(updateDto.amount()));
-        }
     }
 
     // 상위 판매 상품 5개 조회

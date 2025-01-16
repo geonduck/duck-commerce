@@ -8,7 +8,6 @@ import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.domain.order.dto.OrderCalculationResult;
 import kr.hhplus.be.server.domain.order.dto.OrderItemRequest;
 import kr.hhplus.be.server.domain.order.dto.OrderResponse;
-import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.service.OrderService;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
 import kr.hhplus.be.server.domain.product.entity.Product;
@@ -140,7 +139,7 @@ public class OrderServiceTest {
         couponService.useCoupon(couponAssignment.id(), TEST_USER_ID);
 
         // When
-        OrderResponse discountedOrder = orderService.applyDiscount(orderService.findOrderById(createdOrder.orderId()), 50.0);
+        OrderResponse discountedOrder = orderService.applyDiscount(orderService.findByOrderId(createdOrder.orderId()), 50.0);
 
         // Then
         assertThat(discountedOrder.discountAmount()).isEqualTo(50.0);
@@ -151,7 +150,7 @@ public class OrderServiceTest {
     @DisplayName("존재하지 않는 주문을 조회 시도 시 예외 발생")
     void testFindInvalidOrder_Failure() {
         // When & Then
-        assertThatThrownBy(() -> orderService.findOrderById(999L))
+        assertThatThrownBy(() -> orderService.findByOrderId(999L))
                 .isInstanceOf(DomainException.class)
                 .hasMessage("존재하지 않는 주문입니다");
     }
@@ -174,7 +173,7 @@ public class OrderServiceTest {
         orderService.updateOrderStatus(orderId, OrderStatus.COMPLETED);
 
         // Then
-        Order updatedOrder = orderService.findOrderById(orderId);
-        assertThat(updatedOrder.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
+        OrderResponse updatedOrder = orderService.findByOrderId(orderId);
+        assertThat(updatedOrder.orderStatus()).isEqualTo(OrderStatus.COMPLETED);
     }
 }

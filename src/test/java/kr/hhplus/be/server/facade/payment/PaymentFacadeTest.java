@@ -4,16 +4,21 @@ import kr.hhplus.be.server.domain.balance.dto.BalanceDomainDto;
 import kr.hhplus.be.server.domain.balance.service.BalanceService;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import kr.hhplus.be.server.domain.order.dto.OrderItemResponse;
+import kr.hhplus.be.server.domain.order.dto.OrderResponse;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.service.OrderService;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
+import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,23 +26,26 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class PaymentFacadeTest {
 
+    @Mock
     private PaymentService paymentService;
+
+    @Mock
     private OrderService orderService;
+
+    @Mock
     private BalanceService balanceService;
+
+    @Mock
     private ProductDailySalesService productDailySalesService;
+
+    @Mock
+    private OrderEventSender orderEventSender;
+
+    @InjectMocks
     private PaymentFacade paymentFacade;
-
-    @BeforeEach
-    void setUp() {
-        paymentService = mock(PaymentService.class);
-        orderService = mock(OrderService.class);
-        balanceService = mock(BalanceService.class);
-        productDailySalesService = mock(ProductDailySalesService.class);
-
-        paymentFacade = new PaymentFacade(paymentService, orderService, balanceService, productDailySalesService);
-    }
 
     @Test
     @DisplayName("결제 생성 테스트 - 정상 흐름")
@@ -53,9 +61,12 @@ public class PaymentFacadeTest {
                 .totalAmount(paymentAmount)
                 .build();
 
+        OrderResponse mockOrderResponse = new OrderResponse(orderId, userId, 1L, paymentAmount, 0.0, OrderStatus.PENDING, List.of());
+
         PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
 
-        when(orderService.findOrderById(orderId)).thenReturn(mockOrder);
+        lenient().when(orderService.findOrderById(orderId)).thenReturn(mockOrder);
+        when(orderService.findByOrderId(orderId)).thenReturn(mockOrderResponse);
         when(paymentService.createPayment(orderId, paymentAmount)).thenReturn(mockPayment);
 
         // When
@@ -79,7 +90,7 @@ public class PaymentFacadeTest {
 
         PaymentDomainDto mockPayment = new PaymentDomainDto(paymentId, orderId, 100.0, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
 
-        when(paymentService.getPayment(paymentId)).thenReturn(mockPayment);
+        lenient().when(paymentService.getPayment(paymentId)).thenReturn(mockPayment);
         when(orderService.getOrderItems(orderId)).thenReturn(List.of(
                 new OrderItemResponse(100L, "상품A", 3), // 상품 ID 100, 수량 3
                 new OrderItemResponse(101L, "상품B", 5)  // 상품 ID 101, 수량 5
@@ -92,5 +103,22 @@ public class PaymentFacadeTest {
         verify(paymentService).updatePaymentStatus(paymentId, PaymentStatus.COMPLETED);
         verify(orderService).updateOrderStatus(orderId, OrderStatus.COMPLETED);
         verify(productDailySalesService, times(2)).updateDailySales(101L, 5);
+    }
+
+    @Test
+    void shouldSendOrderEventWhenPaymentCompleted() {
+        // given
+        Long paymentId = 1L;
+        Long orderId = 1L;
+        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, 100.0, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
+        OrderResponse orderResponse = new OrderResponse(orderId, "userId", 1L, 400.0, 0.0, OrderStatus.PENDING, List.of());
+
+        when(orderService.findByOrderId(orderId)).thenReturn(orderResponse);
+
+        // when
+        paymentFacade.updatePaymentStatus(payment, PaymentStatus.COMPLETED);
+
+        // then
+        verify(orderEventSender, times(1)).send(orderResponse);
     }
 }
