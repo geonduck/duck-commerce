@@ -33,12 +33,12 @@ public class PaymentService {
     }
 
     @Transactional
-    public void updatePaymentStatus(Long paymentId, PaymentStatus status) {
+    public PaymentDomainDto updatePaymentStatus(Long paymentId, PaymentStatus status) {
         Payment payment = findPaymentById(paymentId);
 
         payment.setPaymentStatus(status);
         payment.setUpdatedAt(LocalDateTime.now());
-        paymentRepository.save(payment);
+        return PaymentDomainDto.of(paymentRepository.save(payment));
     }
 
     @Transactional(readOnly = true)

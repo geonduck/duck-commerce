@@ -74,7 +74,7 @@ public class OrderFacade {
         return orderItems.stream()
                 .map(item -> {
                     ProductDomainDto product = productService.getProduct(item.productId());
-                    productService.updateProduct(new ProductUpdateDto(item.productId(), item.amount())); // 재고 차감
+                    productService.updateProduct(new ProductUpdateDto(item.productId(), -item.amount())); // 재고 차감
                     return product;
                 }).collect(Collectors.toList());
     }

@@ -43,7 +43,7 @@ public class PaymentFacade {
         balanceService.use(balanceUpdateRequest); // 여기서 잔액이 부족하면 예외 발생
 
         // 4. 결제 상태를 COMPLETED로 설정해 업데이트
-        updatePaymentStatus(payment, PaymentStatus.COMPLETED);
+        payment = updatePaymentStatus(payment, PaymentStatus.COMPLETED);
 
         // 5. PaymentDomainDto → PaymentResponseDto로 변환 후 반환
         return toPaymentResponseDto(payment);
@@ -52,9 +52,9 @@ public class PaymentFacade {
     /**
      * 결제 상태 업데이트 및 관련 비즈니스 로직 실행
      */
-    public void updatePaymentStatus(PaymentDomainDto payment, PaymentStatus status) {
+    public PaymentDomainDto updatePaymentStatus(PaymentDomainDto payment, PaymentStatus status) {
         // 1. 상태 업데이트
-        paymentService.updatePaymentStatus(payment.id(), status);
+        payment = paymentService.updatePaymentStatus(payment.id(), status);
 
         if (status == PaymentStatus.COMPLETED) {
             orderService.updateOrderStatus(payment.orderId(), OrderStatus.COMPLETED);
@@ -70,6 +70,7 @@ public class PaymentFacade {
             reflectDailySales(payment);
             sendOrderEvent(payment);
         }
+        return payment;
     }
 
     /**

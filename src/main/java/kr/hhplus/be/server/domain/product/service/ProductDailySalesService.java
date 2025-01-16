@@ -46,4 +46,5 @@ public class ProductDailySalesService {
 
         return productDailySalesRepository.findTopSellingProductsForPeriod(threeDaysAgo, today, PageRequest.of(0, 5));
     }
+
 }
