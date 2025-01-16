@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.facade.payment.PaymentFacade;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
@@ -30,7 +30,7 @@ public class PaymentController {
             parameters = {@Parameter(name = "paymentId", description = "결제 ID")})
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(
-            @PathVariable(name = "paymentId") @NotBlank(message = "주문 ID는 필수입니다.") Long paymentId
+            @PathVariable(name = "paymentId") @NotNull(message = "주문 ID는 필수입니다.") Long paymentId
     ) {
         log.info("getPayment start");
         PaymentResponseDto response = paymentFacade.getPayment(paymentId);
