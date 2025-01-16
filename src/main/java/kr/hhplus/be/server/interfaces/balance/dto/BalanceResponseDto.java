@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record BalanceResponseDto (
         String userId,
-        long amount,
+        double amount,
         LocalDateTime lastUpdated
 ) {
 

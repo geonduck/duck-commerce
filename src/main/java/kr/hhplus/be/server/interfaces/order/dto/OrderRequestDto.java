@@ -4,7 +4,7 @@ import java.util.List;
 
 public record OrderRequestDto (
         String userId,
-        List<Long> orderItems,
+        List<OrderItemRequestDto> orderItems,
         Long couponId
 ){
 }
