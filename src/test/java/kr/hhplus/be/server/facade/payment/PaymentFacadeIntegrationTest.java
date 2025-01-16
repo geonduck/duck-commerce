@@ -6,6 +6,7 @@ import kr.hhplus.be.server.domain.balance.service.BalanceService;
 import kr.hhplus.be.server.domain.order.dto.OrderCalculationResult;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.service.OrderService;
+import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class PaymentFacadeIntegrationTest {
         createTestBalance(userId, 50_000); // 사용자 잔액 삽입
 
         // When: 결제 생성 로직 호출
-        PaymentResponseDto paymentResponse = paymentFacade.createPayment(userId, orderId);
+        PaymentResponseDto paymentResponse = paymentFacade.createPayment(new PaymentRequestDto(userId, orderId));
 
         // Then: 예상 결과 검증
         assertThat(paymentResponse).isNotNull();

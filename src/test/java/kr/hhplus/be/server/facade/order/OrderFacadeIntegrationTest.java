@@ -112,24 +112,23 @@ public class OrderFacadeIntegrationTest {
     @Test
     void testApplyDiscount_success() {
         // Given
+        // 쿠폰 생성
+        Long couponId = coupon.getId();
+
         // 주문 생성
         OrderRequestDto requestDto = new OrderRequestDto(
                 TEST_USER_ID,
                 List.of(new OrderItemRequestDto(1L, 2), new OrderItemRequestDto(2L, 1)),
-                null
+                couponId
         );
+        // When: 쿠폰 적용
         OrderResponseDto orderResponse = orderFacade.createOrder(requestDto);
 
-        // 쿠폰 생성
-        Long couponId = coupon.getId();
-
-        // When: 쿠폰 적용
-        OrderResponseDto discountedResponse = orderFacade.applyDiscount(TEST_USER_ID, orderResponse.orderId(), couponId);
 
         // Then
-        assertThat(discountedResponse).isNotNull();
-        assertThat(discountedResponse.totalPrice()).isEqualTo(300.0); // 전체 금액: 400.0 - 100.0
-        assertThat(discountedResponse.discountPrice()).isEqualTo(100.0); // 할인 금액
+        assertThat(orderResponse).isNotNull();
+        assertThat(orderResponse.totalPrice()).isEqualTo(300.0); // 전체 금액: 400.0 - 100.0
+        assertThat(orderResponse.discountPrice()).isEqualTo(100.0); // 할인 금액
     }
 
     @Test

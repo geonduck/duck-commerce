@@ -3,6 +3,8 @@ package kr.hhplus.be.server.interfaces.order.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.facade.order.OrderFacade;
 import kr.hhplus.be.server.interfaces.order.dto.OrderRequestDto;
@@ -29,7 +31,7 @@ public class OrderController {
     @Operation(summary = "주문 조회", description = "특정 유저의 주문을 조회하는 기능",
             parameters = {@Parameter(name = "userId", description = "사용자 ID")})
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<List<OrderResponseDto>>> findById (@PathVariable(name = "userId") String userId) {
+    public ResponseEntity<ApiResponse<List<OrderResponseDto>>> findById (@PathVariable(name = "userId") @NotBlank(message = "사용자 ID는 필수입니다.") String userId) {
         log.info("findById start");
         List<OrderResponseDto> orders = orderFacade.getOrdersByUserId(userId);
 
@@ -43,27 +45,10 @@ public class OrderController {
             parameters = {@Parameter(name = "OrderRequestDto", description = "주문 데이터")})
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
-            @RequestBody OrderRequestDto requestDto
+            @RequestBody @Valid OrderRequestDto requestDto
     ) {
         log.info("createOrder start");
         OrderResponseDto response = orderFacade.createOrder(requestDto);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @Operation(summary = "주문에 할인 적용", description = "주문에 쿠폰을 적용해 할인을 추가합니다.",
-            parameters = {
-                    @Parameter(name = "orderId", description = "주문 ID"),
-                    @Parameter(name = "userId", description = "사용자 ID"),
-                    @Parameter(name = "couponId", description = "적용할 쿠폰 ID")
-            })
-    @PostMapping("/discount/{orderId}")
-    public ResponseEntity<ApiResponse<OrderResponseDto>> applyDiscount(
-            @PathVariable Long orderId,
-            @RequestParam String userId,
-            @RequestParam Long couponId
-    ) {
-        log.info("applyDiscount start");
-        OrderResponseDto response = orderFacade.applyDiscount(userId, orderId, couponId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

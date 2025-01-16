@@ -3,8 +3,11 @@ package kr.hhplus.be.server.interfaces.payment.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.facade.payment.PaymentFacade;
+import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +30,7 @@ public class PaymentController {
             parameters = {@Parameter(name = "paymentId", description = "결제 ID")})
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(
-            @PathVariable(name = "paymentId") Long paymentId
+            @PathVariable(name = "paymentId") @NotBlank(message = "주문 ID는 필수입니다.") Long paymentId
     ) {
         log.info("getPayment start");
         PaymentResponseDto response = paymentFacade.getPayment(paymentId);
@@ -39,16 +42,14 @@ public class PaymentController {
      */
     @Operation(summary = "결제 진행", description = "주문에 대한 결제를 진행합니다.",
             parameters = {
-                    @Parameter(name = "userId", description = "사용자 ID"),
-                    @Parameter(name = "orderId", description = "주문 ID")
+                    @Parameter(name = "PaymentRequestDto", description = "결제 데이터")
             })
     @PostMapping("/pay")
     public ResponseEntity<ApiResponse<PaymentResponseDto>> createPayment(
-            @RequestParam String userId,
-            @RequestParam Long orderId
+            @RequestBody @Valid PaymentRequestDto requestDto
     ) {
         log.info("createPayment start");
-        PaymentResponseDto response = paymentFacade.createPayment(userId, orderId);
+        PaymentResponseDto response = paymentFacade.createPayment(requestDto);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

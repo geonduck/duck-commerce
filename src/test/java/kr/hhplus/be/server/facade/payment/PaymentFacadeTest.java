@@ -12,6 +12,7 @@ import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
+import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ public class PaymentFacadeTest {
         when(paymentService.createPayment(orderId, paymentAmount)).thenReturn(mockPayment);
 
         // When
-        PaymentResponseDto response = paymentFacade.createPayment(userId, orderId);
+        PaymentResponseDto response = paymentFacade.createPayment(new PaymentRequestDto(userId, orderId));
 
         // Then
         verify(balanceService).use(new BalanceDomainDto(userId, paymentAmount));

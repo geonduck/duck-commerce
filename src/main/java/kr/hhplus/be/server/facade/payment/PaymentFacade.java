@@ -11,6 +11,7 @@ import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
+import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -30,16 +31,16 @@ public class PaymentFacade {
     /**
      * 유저의 주문을 가져와 결제를 생성
      */
-    public PaymentResponseDto createPayment(String userId, Long orderId) {
+    public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
         // 1. 유저의 주문 데이터를 가져오기
-        OrderResponse order = orderService.findByOrderId(orderId);
+        OrderResponse order = orderService.findByOrderId(requestDto.orderId());
         double paymentAmount = order.totalAmount();
 
         // 2. 결제 생성
-        PaymentDomainDto payment = paymentService.createPayment(orderId, paymentAmount);
+        PaymentDomainDto payment = paymentService.createPayment(requestDto.orderId(), paymentAmount);
 
         // 3. 유저의 잔액 차감
-        BalanceDomainDto balanceUpdateRequest = new BalanceDomainDto(userId, paymentAmount);
+        BalanceDomainDto balanceUpdateRequest = new BalanceDomainDto(requestDto.userId(), paymentAmount);
         balanceService.use(balanceUpdateRequest); // 여기서 잔액이 부족하면 예외 발생
 
         // 4. 결제 상태를 COMPLETED로 설정해 업데이트

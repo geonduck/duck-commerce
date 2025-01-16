@@ -3,6 +3,8 @@ package kr.hhplus.be.server.interfaces.balance.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.facade.balance.BalanceFacade;
 import kr.hhplus.be.server.interfaces.balance.dto.BalanceRequestDto;
@@ -27,7 +29,7 @@ public class BalanceController {
     @Operation(summary = "잔액 조회", description = "특정 유저의 잔액을 조회하는 기능",
             parameters = {@Parameter(name = "userId", description = "사용자 ID")})
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<BalanceResponseDto>> findById (@PathVariable(name = "userId") String userId) {
+    public ResponseEntity<ApiResponse<BalanceResponseDto>> findById (@PathVariable(name = "userId") @NotBlank(message = "사용자 ID는 필수입니다.") String userId) {
         log.info("findById start");
         BalanceResponseDto responseDto = balanceFacade.getBalance(userId);
 
@@ -40,7 +42,7 @@ public class BalanceController {
     @Operation(summary = "잔액 충전 (charge)", description = "특정 유저의 잔액을 충전하는 기능",
             parameters = {@Parameter(name = "BalanceRequestDto", description = "사용자 ID, 충전 금액")})
     @PostMapping("/charge")
-    public ResponseEntity<ApiResponse<BalanceResponseDto>> save(@RequestBody BalanceRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<BalanceResponseDto>> save(@RequestBody @Valid BalanceRequestDto requestDto) {
         log.info("save start");
         BalanceResponseDto responseDto = balanceFacade.chargeBalance(requestDto);
 

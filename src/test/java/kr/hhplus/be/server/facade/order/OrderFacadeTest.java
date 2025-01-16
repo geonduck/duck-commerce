@@ -93,9 +93,14 @@ class OrderFacadeTest {
         when(orderService.applyDiscount(order, 50)).thenReturn(
                 new OrderResponse(orderId, userId, 1L, 350.0, 50.0, OrderStatus.PENDING, List.of())
         );
+        OrderRequestDto requestDto = new OrderRequestDto(
+                userId,
+                List.of(new OrderItemRequestDto(1L, 2), new OrderItemRequestDto(2L, 1)),
+                couponId
+        );
 
         // When
-        OrderResponseDto responseDto = orderFacade.applyDiscount(userId, orderId, couponId);
+        OrderResponseDto responseDto = orderFacade.applyDiscount(orderId, requestDto);
 
         // Then
         assertEquals(350.0, responseDto.totalPrice());

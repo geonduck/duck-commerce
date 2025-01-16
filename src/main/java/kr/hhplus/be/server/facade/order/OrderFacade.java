@@ -45,6 +45,10 @@ public class OrderFacade {
         // 3. 주문 생성
         OrderResponse orderResponse = orderService.createOrder(requestDto.userId(), calculationResult);
 
+        if(requestDto.couponId() != null && requestDto.couponId() > 0){
+            return applyDiscount(orderResponse.orderId(), requestDto);
+        }
+
         // 4. 응답 DTO 반환
         return toOrderResponseDto(orderResponse);
     }
@@ -52,12 +56,12 @@ public class OrderFacade {
     /**
      * 쿠폰을 사용한 할인 적용
      */
-    public OrderResponseDto applyDiscount(String userId, Long orderId, Long couponId) {
+    public OrderResponseDto applyDiscount(Long orderId, OrderRequestDto requestDto) {
         // 1. 주문 정보 조회
         OrderResponse order = orderService.findByOrderId(orderId);
 
         // 2. 쿠폰 사용
-        CouponAssignmentDto couponAssignment = couponService.useCoupon(couponId, userId);
+        CouponAssignmentDto couponAssignment = couponService.useCoupon(requestDto.couponId(), requestDto.userId());
         double discountAmount = couponAssignment.coupon().discountAmount();
 
         // 3. 할인 적용

@@ -2,37 +2,36 @@ package kr.hhplus.be.server.config.web;
 
 import jakarta.servlet.*;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.UUID;
+
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 @Slf4j
+@WebFilter(urlPatterns = "/api/v1/*")
 public class LogFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        log.info("Log Filter : init");
+        log.info("Log Filter init");
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        log.info("Log Filter : doFilter 실행");
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        String requestURI = httpServletRequest.getRequestURI();
-
-        // 요청의 추적을 위해 UUID 사용
         String uuid = UUID.randomUUID().toString();
-        request.setAttribute("logId", uuid);
+        MDC.put("logId", uuid);
 
         try {
-            log.info("Log Filter : doFilter : REQUEST [{}][{}]", uuid, requestURI);
             chain.doFilter(request, response);
-        } catch (Exception e) {
-            throw e;
         } finally {
-            log.info("Log Filter : doFilter : RESPONSE [{}][{}]", uuid, requestURI);
+            MDC.clear(); // 요청-응답 완료 후 정리
         }
     }
 
