@@ -25,4 +25,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public Page<Product> findAll(Pageable pageable) {
         return jpaRepository.findAll(pageable);
     }
+
+    @Override
+    public Product save(Product product) {
+        return jpaRepository.save(product);
+    }
 }

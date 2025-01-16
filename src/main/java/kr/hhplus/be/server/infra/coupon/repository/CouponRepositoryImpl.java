@@ -25,4 +25,9 @@ public class CouponRepositoryImpl implements CouponRepository {
     public Page<Coupon> findAll(Pageable pageable) {
         return jpaRepository.findAll(pageable);
     }
+
+    @Override
+    public Coupon save(Coupon coupon) {
+        return jpaRepository.save(coupon);
+    }
 }

@@ -25,4 +25,9 @@ public class StockRepositoryImpl implements StockRepository {
         return jpaRepository.findByProductIdIn(productIds);
     }
 
+    @Override
+    public Stock save(Stock stock) {
+        return jpaRepository.save(stock);
+    }
+
 }

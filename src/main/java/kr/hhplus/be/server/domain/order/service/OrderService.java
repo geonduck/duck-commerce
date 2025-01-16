@@ -38,10 +38,10 @@ public class OrderService {
                 .discountAmount(0.0) // 쿠폰 적용 전 초기값
                 .orderStatus(OrderStatus.PENDING)
                 .build();
-        Order savedOrder = orderRepository.save(order);
+        Order savedOrder = save(order);
 
         // 주문 아이템 저장
-        saveOrderItems(savedOrder.getId(), orderItems);
+        orderItems = saveOrderItems(savedOrder.getId(), orderItems);
 
         // 응답 생성
         return buildOrderResponse(savedOrder, orderItems.stream()
@@ -52,16 +52,19 @@ public class OrderService {
     /**
      * 주문 아이템 저장
      */
-    private void saveOrderItems(Long orderId, List<OrderItem> orderItems) {
-        orderItems.forEach(item -> OrderItem.builder()
-                .orderId(orderId)
-                .productId(item.getProductId())
-                .userId(item.getUserId())
-                .amount(item.getAmount())
-                .productName(item.getProductName())
-                .price(item.getPrice())
-                .build());
-        orderItemRepository.saveAll(orderItems);
+    @Transactional
+    protected List<OrderItem> saveOrderItems(Long orderId, List<OrderItem> orderItems) {
+        List<OrderItem> updatedOrderItems = orderItems.stream()
+                .map(item -> OrderItem.builder()
+                        .orderId(orderId)
+                        .productId(item.getProductId())
+                        .userId(item.getUserId())
+                        .amount(item.getAmount())
+                        .productName(item.getProductName())
+                        .price(item.getPrice())
+                        .build())
+                .toList(); // 새로운 리스트 생성
+        return orderItemRepository.saveAll(updatedOrderItems); // 업데이트된 리스트 저장
     }
 
     /**
@@ -122,6 +125,10 @@ public class OrderService {
         order.setOrderStatus(status);
 
         // 3. 저장
-        orderRepository.save(order);
+        save(order);
+    }
+
+    public Order save(Order order) {
+        return orderRepository.save(order);
     }
 }

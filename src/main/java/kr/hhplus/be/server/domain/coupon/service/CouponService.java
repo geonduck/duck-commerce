@@ -80,4 +80,7 @@ public class CouponService {
         return assignments.map(CouponAssignmentDto::of);
     }
 
+    public Coupon save(Coupon coupon) {
+        return couponRepository.save(coupon);
+    }
 }

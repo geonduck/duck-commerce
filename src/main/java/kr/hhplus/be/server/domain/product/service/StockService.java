@@ -49,12 +49,18 @@ public class StockService {
                 ));
     }
 
-    public void adjust(ProductUpdateDto updateDto) {
+    public StockDto adjust(ProductUpdateDto updateDto) {
         Stock stock = findStockByProductId(updateDto.productId());
+
         if (updateDto.amount() > 0) {
             increase(stock, updateDto.amount());
         } else {
             decrease(stock, updateDto.amount());
         }
+        return StockDto.from(save(stock));
+    }
+
+    public Stock save(Stock stock) {
+        return stockRepository.save(stock);
     }
 }

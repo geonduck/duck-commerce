@@ -24,7 +24,7 @@ public class Stock extends BaseTimeEntity {
 
     public void decrease(int quantity) {
         validateDecrease(quantity);
-        this.quantity -= quantity;
+        this.quantity += quantity;
     }
 
     public void increase(int quantity) {
@@ -33,7 +33,7 @@ public class Stock extends BaseTimeEntity {
     }
 
     private void validateDecrease(int quantity) {
-        if (this.quantity - quantity < 0) {
+        if (this.quantity + quantity < 0) {
             throw new DomainException(ProductErrorCode.SHORTAGE_STOCK_EXCEPTION);
         }
     }

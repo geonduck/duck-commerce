@@ -12,4 +12,5 @@ public interface ProductRepository {
 
     Page<Product> findAll(Pageable pageRequest);
 
+    Product save(Product product);
 }

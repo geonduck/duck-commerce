@@ -10,4 +10,6 @@ public interface CouponRepository {
     Optional<Coupon> findById(long id);
 
     Page<Coupon> findAll(Pageable pageable);
+
+    Coupon save(Coupon coupon);
 }

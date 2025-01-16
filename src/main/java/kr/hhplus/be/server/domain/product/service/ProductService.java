@@ -33,10 +33,11 @@ public class ProductService {
     }
 
     @Transactional
-    public void updateProduct(ProductUpdateDto updateDto) {
+    public ProductDomainDto updateProduct(ProductUpdateDto updateDto) {
         Product product = findProductById(updateDto.productId());
         updateDto.validateUpdate();
-        stockService.adjust(updateDto);
+        StockDto stock = stockService.adjust(updateDto);
+        return ProductDomainDto.of(product, stock);
     }
 
     private Product findProductById(Long productId) {
@@ -55,5 +56,9 @@ public class ProductService {
         return products.map(product ->
                 ProductListDto.of(product, stockMap.get(product.getId()))
         );
+    }
+
+    public Product saveProduct(Product product) {
+        return productRepository.save(product);
     }
 }

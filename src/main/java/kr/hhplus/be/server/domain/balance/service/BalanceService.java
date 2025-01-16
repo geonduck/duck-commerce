@@ -24,7 +24,7 @@ public class BalanceService {
     private final BalanceHistoryRepository balanceHistoryRepository;
 
     @Transactional
-    protected Balance findBalanceByUserId(String userId) {
+    public Balance findBalanceByUserId(String userId) {
         return balanceRepository.findByUserIdWithLock(userId).orElseThrow(() -> new DomainException(BalanceErrorCode.NOT_FIND_EXCEPTION));
     }
 
