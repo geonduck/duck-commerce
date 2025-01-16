@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,12 +38,13 @@ public class CouponControllerTest {
     }
 
     @Test
+    @Sql({"/insert.sql"})
     public void save_ValidRequest_ShouldReturn200() throws Exception {
         // 올바른 요청 데이터
         String validRequest = """
             {
                 "userId": "user1",
-                "couponId": 100
+                "couponId": 1
             }
         """;
 
