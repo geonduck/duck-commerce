@@ -31,7 +31,7 @@ public class CouponService {
             throw new DomainException(CouponErrorCode.ALREADY_EXPIRED_EXCEPTION);
         }
 
-        long issuedCount = couponAssignmentRepository.countByCouponId(id);
+        long issuedCount = countByCouponId(id);
         if (issuedCount >= coupon.getMaxIssuance()) {
             throw new DomainException(CouponErrorCode.MAX_COUPON_EXCEPTION);
         }
@@ -50,8 +50,12 @@ public class CouponService {
         return CouponAssignmentDto.of(couponAssignmentRepository.save(assignment));
     }
 
+    public long countByCouponId(long id) {
+        return couponAssignmentRepository.countByCouponId(id);
+    }
+
     private Coupon findCouponById(Long id) {
-        return couponRepository.findById(id).orElseThrow(() -> new DomainException(CouponErrorCode.NOT_FIND_EXCEPTION));
+        return couponRepository.findByIdWithLock(id).orElseThrow(() -> new DomainException(CouponErrorCode.NOT_FIND_EXCEPTION));
     }
 
     @Transactional

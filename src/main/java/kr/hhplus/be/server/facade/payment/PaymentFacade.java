@@ -10,6 +10,7 @@ import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
+import kr.hhplus.be.server.facade.FacadeException;
 import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
@@ -34,6 +35,10 @@ public class PaymentFacade {
     public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
         // 1. 유저의 주문 데이터를 가져오기
         OrderResponse order = orderService.findByOrderId(requestDto.orderId());
+
+        if(order.orderStatus() == OrderStatus.COMPLETED || order.orderStatus() == OrderStatus.CANCELED){
+            throw new FacadeException(PaymentErrorCode.UNABLE_PROGRESS_EXCEPTION);
+        }
         double paymentAmount = order.totalAmount();
 
         // 2. 결제 생성
@@ -59,7 +64,6 @@ public class PaymentFacade {
 
         if (status == PaymentStatus.COMPLETED) {
             orderService.updateOrderStatus(payment.orderId(), OrderStatus.COMPLETED);
-            reflectDailySales(payment);
         } else if (status == PaymentStatus.CANCELED) {
             orderService.updateOrderStatus(payment.orderId(), OrderStatus.CANCELED);
         } else if (status == PaymentStatus.FAILED) {

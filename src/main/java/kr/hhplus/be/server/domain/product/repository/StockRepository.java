@@ -11,4 +11,6 @@ public interface StockRepository {
     List<Stock> findByProductIdIn(List<Long> productIds);
 
     Stock save(Stock stock);
+
+    Optional<Stock> findByProductIdWithLock(Long productId);
 }

@@ -31,7 +31,7 @@ public class StockService {
     }
 
     private Stock findStockByProductId(Long productId) {
-        return stockRepository.findByProductId(productId).orElseThrow(() -> new DomainException(ProductErrorCode.NOT_FIND_STOCK_EXCEPTION));
+        return stockRepository.findByProductIdWithLock(productId).orElseThrow(() -> new DomainException(ProductErrorCode.NOT_FIND_STOCK_EXCEPTION));
     }
 
     // 재고 조회
@@ -49,6 +49,7 @@ public class StockService {
                 ));
     }
 
+    @Transactional
     public StockDto adjust(ProductUpdateDto updateDto) {
         Stock stock = findStockByProductId(updateDto.productId());
 

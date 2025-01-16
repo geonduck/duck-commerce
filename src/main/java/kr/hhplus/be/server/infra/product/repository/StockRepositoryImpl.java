@@ -30,4 +30,9 @@ public class StockRepositoryImpl implements StockRepository {
         return jpaRepository.save(stock);
     }
 
+    @Override
+    public Optional<Stock> findByProductIdWithLock(Long productId) {
+        return jpaRepository.findByProductIdWithLock(productId);
+    }
+
 }
