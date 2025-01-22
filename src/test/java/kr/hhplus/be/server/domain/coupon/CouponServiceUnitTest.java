@@ -104,7 +104,7 @@ public class CouponServiceUnitTest {
         void assignCouponSuccess() {
             // given
             Coupon coupon = createCoupon(TEST_COUPON_ID, "테스트 쿠폰", 1000, 10);
-            when(couponRepository.findById(TEST_COUPON_ID)).thenReturn(Optional.of(coupon));
+            when(couponRepository.findByIdWithLock(TEST_COUPON_ID)).thenReturn(Optional.of(coupon));
             when(couponAssignmentRepository.countByCouponId(TEST_COUPON_ID)).thenReturn(5);
             when(couponAssignmentRepository.existsByCouponIdAndUserId(TEST_COUPON_ID, TEST_USER_ID))
                     .thenReturn(false);
@@ -127,7 +127,7 @@ public class CouponServiceUnitTest {
         void assignExpiredCouponFail() {
             // given
             Coupon expiredCoupon = createExpiredCoupon(TEST_COUPON_ID, "만료된 쿠폰", 1000, 10);
-            when(couponRepository.findById(TEST_COUPON_ID)).thenReturn(Optional.of(expiredCoupon));
+            when(couponRepository.findByIdWithLock(TEST_COUPON_ID)).thenReturn(Optional.of(expiredCoupon));
 
             // when & then
             DomainException exception = assertThrows(
@@ -142,7 +142,7 @@ public class CouponServiceUnitTest {
         void assignDuplicateCouponFail() {
             // given
             Coupon coupon = createCoupon(TEST_COUPON_ID, "테스트 쿠폰", 1000, 10);
-            when(couponRepository.findById(TEST_COUPON_ID)).thenReturn(Optional.of(coupon));
+            when(couponRepository.findByIdWithLock(TEST_COUPON_ID)).thenReturn(Optional.of(coupon));
             when(couponAssignmentRepository.existsByCouponIdAndUserId(TEST_COUPON_ID, TEST_USER_ID))
                     .thenReturn(true);
 

@@ -69,6 +69,7 @@ public class PaymentFacadeTest {
         lenient().when(orderService.findOrderById(orderId)).thenReturn(mockOrder);
         when(orderService.findByOrderId(orderId)).thenReturn(mockOrderResponse);
         when(paymentService.createPayment(orderId, paymentAmount)).thenReturn(mockPayment);
+        when(paymentService.updatePaymentStatus(mockPayment.id(), PaymentStatus.COMPLETED)).thenReturn(mockPayment);
 
         // When
         PaymentResponseDto response = paymentFacade.createPayment(new PaymentRequestDto(userId, orderId));
@@ -88,14 +89,16 @@ public class PaymentFacadeTest {
         // Given
         Long paymentId = 1L;
         Long orderId = 10L;
+        double paymentAmount = 100.0;
+        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, paymentAmount, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
+        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
 
-        PaymentDomainDto mockPayment = new PaymentDomainDto(paymentId, orderId, 100.0, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
-
-        lenient().when(paymentService.getPayment(paymentId)).thenReturn(mockPayment);
+        lenient().when(paymentService.getPayment(paymentId)).thenReturn(payment);
         when(orderService.getOrderItems(orderId)).thenReturn(List.of(
                 new OrderItemResponse(100L, "상품A", 3), // 상품 ID 100, 수량 3
                 new OrderItemResponse(101L, "상품B", 5)  // 상품 ID 101, 수량 5
         ));
+        when(paymentService.updatePaymentStatus(mockPayment.id(), PaymentStatus.COMPLETED)).thenReturn(mockPayment);
 
         // When
         paymentFacade.updatePaymentStatus(mockPayment, PaymentStatus.COMPLETED);
@@ -103,18 +106,23 @@ public class PaymentFacadeTest {
         // Then
         verify(paymentService).updatePaymentStatus(paymentId, PaymentStatus.COMPLETED);
         verify(orderService).updateOrderStatus(orderId, OrderStatus.COMPLETED);
-        verify(productDailySalesService, times(2)).updateDailySales(101L, 5);
+        verify(productDailySalesService, times(1)).updateDailySales(101L, 5);
     }
 
     @Test
+    @DisplayName("결제 성공시 주문 이벤트 발송 테스트")
     void shouldSendOrderEventWhenPaymentCompleted() {
         // given
         Long paymentId = 1L;
         Long orderId = 1L;
-        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, 100.0, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
+        double paymentAmount = 100.0;
+        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, paymentAmount, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
         OrderResponse orderResponse = new OrderResponse(orderId, "userId", 1L, 400.0, 0.0, OrderStatus.PENDING, List.of());
+        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
 
+        lenient().when(paymentService.getPayment(paymentId)).thenReturn(payment);
         when(orderService.findByOrderId(orderId)).thenReturn(orderResponse);
+        when(paymentService.updatePaymentStatus(mockPayment.id(), PaymentStatus.COMPLETED)).thenReturn(mockPayment);
 
         // when
         paymentFacade.updatePaymentStatus(payment, PaymentStatus.COMPLETED);

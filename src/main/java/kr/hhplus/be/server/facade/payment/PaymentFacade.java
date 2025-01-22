@@ -16,6 +16,7 @@ import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class PaymentFacade {
     /**
      * 유저의 주문을 가져와 결제를 생성
      */
+    @Transactional
     public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
         // 1. 유저의 주문 데이터를 가져오기
         OrderResponse order = orderService.findByOrderId(requestDto.orderId());
@@ -58,6 +60,7 @@ public class PaymentFacade {
     /**
      * 결제 상태 업데이트 및 관련 비즈니스 로직 실행
      */
+    @Transactional
     public PaymentDomainDto updatePaymentStatus(PaymentDomainDto payment, PaymentStatus status) {
         // 1. 상태 업데이트
         payment = paymentService.updatePaymentStatus(payment.id(), status);

@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.facade.order;
 
+import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
@@ -11,6 +12,7 @@ import kr.hhplus.be.server.interfaces.order.dto.OrderItemRequestDto;
 import kr.hhplus.be.server.interfaces.order.dto.OrderRequestDto;
 import kr.hhplus.be.server.interfaces.order.dto.OrderResponseDto;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,6 +44,11 @@ public class OrderFacadeIntegrationTest {
 
     private static final String TEST_USER_ID = "testUser";
 
+    private Long productAId;
+    private Long productBId;
+
+    private Long assignmentId;
+
     @BeforeEach
     void setup() {
         // 상품 데이터 초기화
@@ -55,6 +62,9 @@ public class OrderFacadeIntegrationTest {
                 .build();
         productA = productService.saveProduct(productA);
         productB = productService.saveProduct(productB);
+
+        productAId = productA.getId();
+        productBId = productB.getId();
 
         // 재고 데이터 초기화
         // 초기 재고 10
@@ -78,16 +88,18 @@ public class OrderFacadeIntegrationTest {
                 .expiredAt(LocalDateTime.now().plusDays(7))
                 .build();
         coupon = couponService.save(coupon);
-        couponService.assignCoupon(coupon.getId(), TEST_USER_ID);
+        CouponAssignmentDto dto = couponService.assignCoupon(coupon.getId(), TEST_USER_ID);
+        assignmentId = dto.id();
 
     }
 
     @Test
+    @DisplayName("주문 성공")
     void testCreateOrder_success() {
         // Given
         OrderRequestDto requestDto = new OrderRequestDto(
                 TEST_USER_ID,
-                List.of(new OrderItemRequestDto(1L, 2), new OrderItemRequestDto(2L, 3)), // 상품 2개 대상 요청
+                List.of(new OrderItemRequestDto(productAId, 2), new OrderItemRequestDto(productBId, 3)), // 상품 2개 대상 요청
                 null
         );
 
@@ -99,8 +111,8 @@ public class OrderFacadeIntegrationTest {
         assertThat(responseDto.userId()).isEqualTo(TEST_USER_ID);
 
         // 상품 재고 감소 확인
-        ProductDomainDto productA = productService.getProduct(1L);
-        ProductDomainDto productB = productService.getProduct(2L);
+        ProductDomainDto productA = productService.getProduct(productAId);
+        ProductDomainDto productB = productService.getProduct(productBId);
 
         assertThat(productA.stockQuantity()).isEqualTo(8); // 남은 재고: 10 - 2
         assertThat(productB.stockQuantity()).isEqualTo(2); // 남은 재고: 5 - 3
@@ -110,20 +122,17 @@ public class OrderFacadeIntegrationTest {
     }
 
     @Test
+    @DisplayName("주문 쿠폰 할인 적용 성공")
     void testApplyDiscount_success() {
         // Given
-        // 쿠폰 생성
-        Long couponId = coupon.getId();
-
         // 주문 생성
         OrderRequestDto requestDto = new OrderRequestDto(
                 TEST_USER_ID,
-                List.of(new OrderItemRequestDto(1L, 2), new OrderItemRequestDto(2L, 1)),
-                couponId
+                List.of(new OrderItemRequestDto(productAId, 2), new OrderItemRequestDto(productBId, 1)),
+                assignmentId
         );
         // When: 쿠폰 적용
         OrderResponseDto orderResponse = orderFacade.createOrder(requestDto);
-
 
         // Then
         assertThat(orderResponse).isNotNull();
@@ -132,11 +141,12 @@ public class OrderFacadeIntegrationTest {
     }
 
     @Test
+    @DisplayName("사용자 아이디로 주문 조회 성공")
     void testGetOrdersByUserId() {
         // Given
         // 주문 생성
-        orderFacade.createOrder(new OrderRequestDto(TEST_USER_ID, List.of(new OrderItemRequestDto(1L, 1)), null));
-        orderFacade.createOrder(new OrderRequestDto(TEST_USER_ID, List.of(new OrderItemRequestDto(2L, 2)), null));
+        orderFacade.createOrder(new OrderRequestDto(TEST_USER_ID, List.of(new OrderItemRequestDto(productAId, 1)), null));
+        orderFacade.createOrder(new OrderRequestDto(TEST_USER_ID, List.of(new OrderItemRequestDto(productBId, 2)), null));
 
         // When
         List<OrderResponseDto> orders = orderFacade.getOrdersByUserId(TEST_USER_ID);
@@ -148,11 +158,12 @@ public class OrderFacadeIntegrationTest {
     }
 
     @Test
+    @DisplayName("재고가 부족한 주문 실패")
     void testCreateOrder_withInsufficientStock() {
         // Given
         OrderRequestDto requestDto = new OrderRequestDto(
                 TEST_USER_ID,
-                List.of(new OrderItemRequestDto(1L, 20)), // 재고 초과 요청
+                List.of(new OrderItemRequestDto(productAId, 20)), // 재고 초과 요청
                 null
         );
 

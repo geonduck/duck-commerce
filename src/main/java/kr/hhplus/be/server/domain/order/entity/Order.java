@@ -2,6 +2,8 @@ package kr.hhplus.be.server.domain.order.entity;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.BaseTimeEntity;
+import kr.hhplus.be.server.domain.DomainException;
+import kr.hhplus.be.server.domain.order.OrderErrorCode;
 import kr.hhplus.be.server.domain.order.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,12 +33,12 @@ public class Order extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus; // 주문 상태
 
-    @Version
-    private Integer version;
-
-    public void applyDiscount(double discountAmount, double finalAmount) {
+    public void applyDiscount(double discountAmount) {
+        if(discountAmount > this.getTotalAmount()) {
+            throw new DomainException(OrderErrorCode.NOT_GROW_PRICE_EXCEPTION);
+        }
         this.discountAmount = discountAmount;
-        this.totalAmount = finalAmount;
+        this.totalAmount = this.getTotalAmount() - discountAmount;
     }
 
     public void cancel() {

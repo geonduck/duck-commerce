@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.product.dto.StockDto;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class StockService {
     private final StockRepository stockRepository;
@@ -30,11 +30,12 @@ public class StockService {
         stock.increase(quantity);
     }
 
-    private Stock findStockByProductId(Long productId) {
+    @Transactional
+    protected Stock findStockByProductId(Long productId) {
         return stockRepository.findByProductIdWithLock(productId).orElseThrow(() -> new DomainException(ProductErrorCode.NOT_FIND_STOCK_EXCEPTION));
     }
 
-    // 재고 조회
+    @Transactional
     public StockDto getStock(Long productId) {
         Stock stock = findStockByProductId(productId);
         return StockDto.from(stock);
@@ -51,14 +52,19 @@ public class StockService {
 
     @Transactional
     public StockDto adjust(ProductUpdateDto updateDto) {
-        Stock stock = findStockByProductId(updateDto.productId());
+        try{
+            Stock stock = findStockByProductId(updateDto.productId());
 
-        if (updateDto.amount() > 0) {
-            increase(stock, updateDto.amount());
-        } else {
-            decrease(stock, updateDto.amount());
+            if (updateDto.amount() > 0) {
+                increase(stock, updateDto.amount());
+            } else {
+                decrease(stock, updateDto.amount());
+            }
+            return StockDto.from(save(stock));
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new RuntimeException("Stock update failed due to concurrent modification. Please retry.", e);
         }
-        return StockDto.from(save(stock));
+
     }
 
     public Stock save(Stock stock) {

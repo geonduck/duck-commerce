@@ -160,20 +160,14 @@ class ProductServiceUnitTest {
             when(productRepository.findById(productId)).thenReturn(Optional.of(product));
             Stock stock = createStock(productId, 100);  // 초기 재고 100
             lenient().when(stockRepository.findByProductId(productId)).thenReturn(Optional.of(stock));
-            doAnswer(invocation -> {
-                ProductUpdateDto dto = invocation.getArgument(0);
-                if (dto.amount() > 0) {
-                    stockService.increase(stock, dto.amount());
-                } else {
-                    stockService.decrease(stock, dto.amount());
-                }
-                return null;
-            }).when(stockService).adjust(any(ProductUpdateDto.class));
+            StockDto stockDto = new StockDto(productId, 110);
+            when(stockService.adjust(any(ProductUpdateDto.class))).thenReturn(stockDto);
+
+            // when
             productService.updateProduct(new ProductUpdateDto(productId, increaseAmount));
 
             // then
             verify(stockService).adjust(new ProductUpdateDto(productId, increaseAmount));
-            verify(stockService).increase(eq(stock), eq(increaseAmount));
             verifyNoMoreInteractions(stockService);
         }
 
@@ -190,22 +184,14 @@ class ProductServiceUnitTest {
             Stock stock = createStock(productId, 100);  // 초기 재고 100
             lenient().when(stockRepository.findByProductId(productId)).thenReturn(Optional.of(stock));
 
-            doAnswer(invocation -> {
-                ProductUpdateDto dto = invocation.getArgument(0);
-                if (dto.amount() > 0) {
-                    stockService.increase(stock, dto.amount());
-                } else {
-                    stockService.decrease(stock, dto.amount());
-                }
-                return null;
-            }).when(stockService).adjust(any(ProductUpdateDto.class));
+            StockDto stockDto = new StockDto(productId, 90);
+            when(stockService.adjust(any(ProductUpdateDto.class))).thenReturn(stockDto);
 
             // when
             productService.updateProduct(new ProductUpdateDto(productId, decreaseAmount));
 
             // then
             verify(stockService).adjust(new ProductUpdateDto(productId, decreaseAmount));
-            verify(stockService).decrease(eq(stock), eq(decreaseAmount));
             verifyNoMoreInteractions(stockService);
         }
 
