@@ -19,9 +19,6 @@ public class Stock extends BaseTimeEntity {
     private Long productId;  // 상품 ID
     private int quantity;   // 현재 재고 수량
 
-    @Version
-    private Long version;    // 낙관적 락을 위한 버전
-
     public void decrease(int quantity) {
         validateDecrease(quantity);
         this.quantity += quantity;

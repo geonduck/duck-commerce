@@ -43,6 +43,22 @@ public class CouponServiceTest {
         testCoupon = couponService.save(testCoupon); // Save 테스트 데이터를 DB에 저장
     }
 
+
+    @Test
+    @DisplayName("전체 쿠폰 페이징 목록 조회 성공")
+    void testGetAllCoupons_Paging() {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10); // 첫 페이지, 10개씩 조회
+
+        // when
+        Page<CouponDto> result = couponService.getAllCoupons(pageable);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).name()).isEqualTo(testCoupon.getName());
+    }
+
     @Test
     @DisplayName("쿠폰 발급 성공")
     void testAssignCoupon_Success() {
@@ -118,21 +134,6 @@ public class CouponServiceTest {
         assertThatThrownBy(() -> couponService.useCoupon(assignedCoupon.id(), ANOTHER_USER_ID))
                 .isInstanceOf(RuntimeException.class) // DomainException으로 변경 가능
                 .hasMessageContaining("해당 사용자의 쿠폰이 아닙니다");
-    }
-
-    @Test
-    @DisplayName("전체 쿠폰 페이징 목록 조회 성공")
-    void testGetAllCoupons_Paging() {
-        // given
-        PageRequest pageable = PageRequest.of(0, 10); // 첫 페이지, 10개씩 조회
-
-        // when
-        Page<CouponDto> result = couponService.getAllCoupons(pageable);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).name()).isEqualTo(testCoupon.getName());
     }
 
     @Test

@@ -8,6 +8,7 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.service.OrderService;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,7 @@ public class PaymentFacadeIntegrationTest {
     private BalanceService balanceService;
 
     @Test
+    @DisplayName("결제 테스트 - 정상 흐름")
     void testCreatePayment_success() {
         // Given: 테스트 데이터 세팅
         String userId = "user1";

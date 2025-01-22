@@ -16,9 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,6 +35,8 @@ class OrderConcurrencyTest {
 
     private static final String TEST_USER_ID = "testUser";
 
+    private Long productId;
+
     @BeforeEach
     void setup() {
         // 상품, 재고 초기화
@@ -44,6 +45,7 @@ class OrderConcurrencyTest {
                 .price(100D)
                 .build();
         product = productService.saveProduct(product);
+        productId = product.getId();
 
         Stock stock = Stock.builder()
                 .productId(product.getId())
@@ -54,12 +56,9 @@ class OrderConcurrencyTest {
 
     @Test
     @DisplayName("동시 주문 생성 테스트")
-    void testConcurrentOrderCreation() throws InterruptedException {
+    void testConcurrentOrderCreation() {
         // Given
-        Long productId = 1L; // 미리 저장된 상품 ID
         int threadCount = 20; // 동시 사용자 수
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
 
         OrderRequestDto orderRequest = new OrderRequestDto(
                 TEST_USER_ID,
@@ -70,22 +69,19 @@ class OrderConcurrencyTest {
         // Shared result container for validation
         List<String> results = Collections.synchronizedList(new ArrayList<>());
 
-        for (int i = 0; i < threadCount; i++) {
-            executorService.execute(() -> {
-                try {
-                    // Order 생성 요청
-                    OrderResponseDto response = orderFacade.createOrder(orderRequest);
-                    results.add("Success: " + response.orderId());
-                } catch (Exception e) {
-                    results.add("Failed: " + e.getMessage());
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
+        CompletableFuture<?>[] futures = IntStream.range(0, threadCount)
+                .mapToObj(i -> CompletableFuture.runAsync(() -> {
+                    try {
+                        // Order 생성 요청
+                        OrderResponseDto response = orderFacade.createOrder(orderRequest);
+                        results.add("Success: " + response.orderId());
+                    } catch (Exception e) {
+                        results.add("Failed: " + e.getMessage());
+                    }
+                }))
+                .toArray(CompletableFuture[]::new);
 
-        latch.await(); // 모든 스레드 완료까지 대기
-        executorService.shutdown();
+        CompletableFuture.allOf(futures).join(); // 모든 작업이 끝날 때까지 대기
 
         // THEN 결과 검증
         long successCount = results.stream().filter(r -> r.startsWith("Success")).count();

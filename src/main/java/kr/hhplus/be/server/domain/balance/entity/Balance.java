@@ -25,9 +25,6 @@ public class Balance extends BaseTimeEntity {
     private String userId;  // 사용자 ID
     private double amount;  // 잔액
 
-    @Version
-    private Long version;
-
     public void charge(double amount) {
         if (this.amount + amount > MAX_BALANCE) {
             throw new DomainException(BalanceErrorCode.MAX_BALANCE_EXCEPTION);

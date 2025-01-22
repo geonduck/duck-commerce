@@ -15,11 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 
 @SpringBootTest
 class PaymentConcurrencyTest {
@@ -63,24 +64,21 @@ class PaymentConcurrencyTest {
     void testConcurrentPaymentRequests() throws InterruptedException {
         // Given
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT);
-        CountDownLatch latch = new CountDownLatch(THREAD_COUNT);
         List<String> results = Collections.synchronizedList(new ArrayList<>());
 
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            executorService.execute(() -> {
-                try {
-                    PaymentRequestDto request = new PaymentRequestDto(TEST_USER_ID, testOrderId); // 결제 요청
-                    PaymentResponseDto response = paymentFacade.createPayment(request);
-                    results.add("Success: " + response.status()); // 성공 상태 기록
-                } catch (Exception e) {
-                    results.add("Failed: " + e.getMessage()); // 실패 상태 기록
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
+        CompletableFuture<?>[] futures = IntStream.range(0, THREAD_COUNT)
+                .mapToObj(i -> CompletableFuture.runAsync(() -> {
+                    try {
+                        PaymentRequestDto request = new PaymentRequestDto(TEST_USER_ID, testOrderId); // 결제 요청
+                        PaymentResponseDto response = paymentFacade.createPayment(request);
+                        results.add("Success: " + response.status()); // 성공 상태 기록
+                    } catch (Exception e) {
+                        results.add("Failed: " + e.getMessage()); // 실패 상태 기록
+                    }
+                }, executorService))
+                .toArray(CompletableFuture[]::new);
 
-        latch.await(); // 모든 스레드 완료 대기
+        CompletableFuture.allOf(futures).join(); // 모든 작업이 끝날 때까지 대기
         executorService.shutdown();
 
         // Then

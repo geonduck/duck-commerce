@@ -7,7 +7,7 @@ spring:
     name: HangHaePlusDataSource
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 30
       connection-timeout: 10000
       max-lifetime: 60000
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,7 +16,7 @@ spring:
     generate-ddl: false
     show-sql: false
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC

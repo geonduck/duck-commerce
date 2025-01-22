@@ -74,8 +74,7 @@ public class OrderService {
     public OrderResponse applyDiscount(OrderResponse orderResponse, double discountAmount) {
         Order order = findOrderById(orderResponse.orderId());
         // 할인 적용
-        double finalAmount = order.getTotalAmount() - discountAmount;
-        order.applyDiscount(discountAmount, finalAmount);
+        order.applyDiscount(discountAmount);
 
         // 저장
         Order updatedOrder = orderRepository.save(order);
@@ -106,7 +105,7 @@ public class OrderService {
      * 특정 주문 ID로 주문 조회
      */
     public Order findOrderById(Long orderId) {
-        return orderRepository.findById(orderId)
+        return orderRepository.findByIdWithLock(orderId)
                 .orElseThrow(() -> new DomainException(OrderErrorCode.NOT_FIND_EXCEPTION));
     }
 

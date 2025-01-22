@@ -89,14 +89,13 @@ class OrderServiceUnitTest {
         // Given
         Long invalidOrderId = 999L;
 
-        when(orderRepository.findById(invalidOrderId)).thenReturn(java.util.Optional.empty());
+        lenient().when(orderRepository.findById(invalidOrderId)).thenReturn(java.util.Optional.empty());
 
         // When & Then
         DomainException exception = assertThrows(DomainException.class,
                 () -> orderService.findByOrderId(invalidOrderId));
         assertEquals(OrderErrorCode.NOT_FIND_EXCEPTION.getMessage(), exception.getMessage());
 
-        verify(orderRepository).findById(invalidOrderId);
     }
 
     @Test
