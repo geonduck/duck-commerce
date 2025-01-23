@@ -5,12 +5,10 @@ import kr.hhplus.be.server.domain.BaseTimeEntity;
 import kr.hhplus.be.server.domain.DomainException;
 import kr.hhplus.be.server.domain.order.OrderErrorCode;
 import kr.hhplus.be.server.domain.order.OrderStatus;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -45,7 +43,4 @@ public class Order extends BaseTimeEntity {
         setOrderStatus(OrderStatus.CANCELED);
     }
 
-    public void setOrderStatus(OrderStatus status) {
-        this.orderStatus = status;
-    }
 }
