@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.facade.payment;
 
-import kr.hhplus.be.server.config.redis.RedisLock;
 import kr.hhplus.be.server.domain.balance.dto.BalanceDomainDto;
 import kr.hhplus.be.server.domain.balance.service.BalanceService;
 import kr.hhplus.be.server.domain.order.OrderStatus;
@@ -35,7 +34,6 @@ public class PaymentFacade {
      * 유저의 주문을 가져와 결제를 생성
      */
     @Transactional
-    @RedisLock(key = "#requestDto.userId() + ':' + #requestDto.orderId()", expiration = 60, keyPrefix = "payment")
     public PaymentResponseDto createPayment(PaymentRequestDto requestDto) {
         // 1. 유저의 주문 데이터를 가져오기
         OrderResponse order = orderService.findByOrderId(requestDto.orderId());
