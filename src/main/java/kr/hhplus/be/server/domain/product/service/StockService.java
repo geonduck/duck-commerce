@@ -21,17 +21,19 @@ public class StockService {
     private final StockRepository stockRepository;
 
     @Transactional
-    public void decrease(Stock stock, int quantity) {
+    public Stock decrease(Stock stock, int quantity) {
         stock.decrease(quantity);
+        return stock;
     }
 
     @Transactional
-    public void increase(Stock stock, int quantity) {
+    public Stock increase(Stock stock, int quantity) {
         stock.increase(quantity);
+        return stock;
     }
 
     @Transactional
-    protected Stock findStockByProductId(Long productId) {
+    public Stock findStockByProductId(Long productId) {
         return stockRepository.findByProductIdWithLock(productId).orElseThrow(() -> new DomainException(ProductErrorCode.NOT_FIND_STOCK_EXCEPTION));
     }
 
@@ -56,9 +58,9 @@ public class StockService {
             Stock stock = findStockByProductId(updateDto.productId());
 
             if (updateDto.amount() > 0) {
-                increase(stock, updateDto.amount());
+                stock = increase(stock, updateDto.amount());
             } else {
-                decrease(stock, updateDto.amount());
+                stock = decrease(stock, updateDto.amount());
             }
             return StockDto.from(save(stock));
         } catch (ObjectOptimisticLockingFailureException e) {
