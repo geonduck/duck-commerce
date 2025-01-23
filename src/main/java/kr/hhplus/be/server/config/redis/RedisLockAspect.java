@@ -31,7 +31,7 @@ public class RedisLockAspect {
 
         log.info("Attempting to acquire lock: {}", key);
 
-        // 대기 시간을 늘리고 만료 시간을 조정
+        // 대기 시간을 늘리고 만료 시간을 조정 가능
         boolean isLocked = lock.tryLock(30, expiration, TimeUnit.SECONDS);
         if (!isLocked) {
             log.error("Lock acquisition failed: {}", key);
