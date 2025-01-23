@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.facade.balance;
 
+import kr.hhplus.be.server.config.redis.RedisLock;
 import kr.hhplus.be.server.domain.balance.dto.BalanceDomainDto;
 import kr.hhplus.be.server.domain.balance.service.BalanceService;
 import kr.hhplus.be.server.interfaces.balance.dto.BalanceRequestDto;
@@ -20,6 +21,7 @@ public class BalanceFacade {
         return new BalanceResponseDto(domainDto.userId(), domainDto.amount(), LocalDateTime.now());
     }
 
+    @RedisLock(key = "#requestDto.userId()", expiration = 60, keyPrefix = "balance")
     public BalanceResponseDto chargeBalance(BalanceRequestDto requestDto) {
         BalanceDomainDto domainDto = balanceService.charge(
                 new BalanceDomainDto(requestDto.userId(), (double) requestDto.amount())
@@ -27,6 +29,7 @@ public class BalanceFacade {
         return new BalanceResponseDto(domainDto.userId(), domainDto.amount(), LocalDateTime.now());
     }
 
+    @RedisLock(key = "#requestDto.userId()", expiration = 60, keyPrefix = "balance")
     public BalanceResponseDto useBalance(BalanceRequestDto requestDto) {
         BalanceDomainDto domainDto = balanceService.use(
                 new BalanceDomainDto(requestDto.userId(), (double) requestDto.amount())
