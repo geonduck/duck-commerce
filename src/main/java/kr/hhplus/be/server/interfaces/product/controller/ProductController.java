@@ -3,7 +3,7 @@ package kr.hhplus.be.server.interfaces.product.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.facade.product.ProductFacade;
 import kr.hhplus.be.server.interfaces.product.dto.ProductResponseDto;
@@ -42,7 +42,7 @@ public class ProductController {
     @Operation(summary = "상품 상세 조회", description = "상품 상세 조회하는 기능",
             parameters = {@Parameter(name = "productId", description = "상품 ID")})
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponseDto>> getProduct(@PathVariable(name = "productId") @NotBlank(message = "상품 ID는 필수입니다.") Long productId) {
+    public ResponseEntity<ApiResponse<ProductResponseDto>> getProduct(@PathVariable(name = "productId") @NotNull(message = "상품 ID는 필수입니다.") Long productId) {
         log.info("getProduct start");
         ProductResponseDto product = productFacade.getProductDetail(productId);
 
