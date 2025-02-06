@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.facade.coupon;
 
+import kr.hhplus.be.server.config.redis.RedisLock;
 import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.interfaces.coupon.dto.CouponRequestDto;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +20,8 @@ public class CouponFacade {
 
     private final CouponService couponService;
 
+    @Transactional
+    @RedisLock(key = "#requestDto.userId() + ':' + #requestDto.couponId()", expiration = 60, keyPrefix = "coupon")
     public CouponResponseDto assignCoupon(CouponRequestDto requestDto) {
         CouponAssignmentDto assignmentDto = couponService.assignCoupon(requestDto.couponId(), requestDto.userId());
         return new CouponResponseDto(

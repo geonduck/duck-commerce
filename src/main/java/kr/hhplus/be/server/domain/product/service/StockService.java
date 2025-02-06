@@ -54,7 +54,7 @@ public class StockService {
 
     @Transactional
     public StockDto adjust(ProductUpdateDto updateDto) {
-        try{
+
             Stock stock = findStockByProductId(updateDto.productId());
 
             if (updateDto.amount() > 0) {
@@ -63,10 +63,6 @@ public class StockService {
                 stock = decrease(stock, updateDto.amount());
             }
             return StockDto.from(save(stock));
-        } catch (ObjectOptimisticLockingFailureException e) {
-            throw new RuntimeException("Stock update failed due to concurrent modification. Please retry.", e);
-        }
-
     }
 
     public Stock save(Stock stock) {

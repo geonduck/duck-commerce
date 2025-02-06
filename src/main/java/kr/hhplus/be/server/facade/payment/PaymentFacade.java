@@ -46,15 +46,22 @@ public class PaymentFacade {
         // 2. 결제 생성
         PaymentDomainDto payment = paymentService.createPayment(requestDto.orderId(), paymentAmount);
 
-        // 3. 유저의 잔액 차감
-        BalanceDomainDto balanceUpdateRequest = new BalanceDomainDto(requestDto.userId(), paymentAmount);
-        balanceService.use(balanceUpdateRequest); // 여기서 잔액이 부족하면 예외 발생
+        PaymentStatus status = PaymentStatus.PENDING;;
 
-        // 4. 결제 상태를 COMPLETED로 설정해 업데이트
-        payment = updatePaymentStatus(payment, PaymentStatus.COMPLETED);
+        try{
+            // 3. 유저의 잔액 차감
+            BalanceDomainDto balanceUpdateRequest = new BalanceDomainDto(requestDto.userId(), paymentAmount);
+            balanceService.use(balanceUpdateRequest); // 여기서 잔액이 부족하면 예외 발생
+        } catch (Exception e){
+            status = PaymentStatus.FAILED;
+        } finally {
+            // 4. 결제 상태를 업데이트
+            payment = updatePaymentStatus(payment, status);
 
-        // 5. PaymentDomainDto → PaymentResponseDto로 변환 후 반환
-        return toPaymentResponseDto(payment);
+            // 5. PaymentDomainDto → PaymentResponseDto로 변환 후 반환
+            return toPaymentResponseDto(payment);
+        }
+
     }
 
     /**
@@ -68,7 +75,7 @@ public class PaymentFacade {
         if (status == PaymentStatus.COMPLETED) {
             orderService.updateOrderStatus(payment.orderId(), OrderStatus.COMPLETED);
         } else if (status == PaymentStatus.CANCELED) {
-            orderService.updateOrderStatus(payment.orderId(), OrderStatus.CANCELED);
+            orderService.updateOrderStatus(payment.orderId(), OrderStatus.PENDING);
         } else if (status == PaymentStatus.FAILED) {
             orderService.updateOrderStatus(payment.orderId(), OrderStatus.PAYMENT_FAILED);
         }
@@ -111,7 +118,7 @@ public class PaymentFacade {
     private PaymentResponseDto toPaymentResponseDto(PaymentDomainDto domainDto) {
         return new PaymentResponseDto(
                 "unknown", // userId는 domainDto에 없으니 기본값 설정
-                domainDto.orderId().intValue(),
+                domainDto.orderId(),
                 domainDto.status().name()
         );
     }

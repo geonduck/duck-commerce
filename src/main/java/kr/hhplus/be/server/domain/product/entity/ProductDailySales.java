@@ -4,10 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import kr.hhplus.be.server.domain.BaseTimeEntity;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductDailySales {
+public class ProductDailySales extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +27,7 @@ public class ProductDailySales {
 
     private int dailyQuantitySold; // 해당 날짜 판매량
 
-    private LocalDateTime lastUpdated; // 마지막 업데이트 시간
-
     public void incrementSales(int quantity) {
         this.dailyQuantitySold += quantity;
-        this.lastUpdated = LocalDateTime.now();
     }
 }
