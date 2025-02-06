@@ -1,9 +1,11 @@
 package kr.hhplus.be.server.interfaces.payment.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record PaymentResponseDto (
-        String userId,
-        int orderId,
-        String status
+        @JsonProperty("user_id") String userId,
+        @JsonProperty("order_id") Long orderId,
+        @JsonProperty("status") String status
 
 ){
 }

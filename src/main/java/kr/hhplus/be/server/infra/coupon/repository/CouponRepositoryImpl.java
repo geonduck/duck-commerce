@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,5 +35,10 @@ public class CouponRepositoryImpl implements CouponRepository {
     @Override
     public Optional<Coupon> findByIdWithLock(Long id) {
         return jpaRepository.findByIdWithLock(id);
+    }
+
+    @Override
+    public List<Coupon> findAll() {
+        return jpaRepository.findAll();
     }
 }

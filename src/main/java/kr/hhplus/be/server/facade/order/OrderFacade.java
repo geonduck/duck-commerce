@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.facade.order;
 
+import kr.hhplus.be.server.config.redis.RedisLock;
 import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.domain.order.dto.OrderCalculationResult;
@@ -15,6 +16,7 @@ import kr.hhplus.be.server.interfaces.order.dto.OrderRequestDto;
 import kr.hhplus.be.server.interfaces.order.dto.OrderResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +32,8 @@ public class OrderFacade {
     /**
      * 주문 생성
      */
+    @Transactional
+    @RedisLock(key = "#requestDto.userId()", expiration = 60, keyPrefix = "order")
     public OrderResponseDto createOrder(OrderRequestDto requestDto) {
         // 1. 상품 재고 확인 및 차감
         List<ProductDomainDto> products = validateAndUpdateStock(requestDto.orderItems());

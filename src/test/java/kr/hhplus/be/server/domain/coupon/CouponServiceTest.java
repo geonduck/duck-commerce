@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.domain.DomainException;
 import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
 import kr.hhplus.be.server.domain.coupon.dto.CouponDto;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +28,11 @@ public class CouponServiceTest {
     @Autowired
     private CouponService couponService;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private SetOperations<String, Object> setOperations;
+
     private static final String TEST_USER_ID = "testUser";
     private static final String ANOTHER_USER_ID = "anotherUser";
 
@@ -32,6 +40,10 @@ public class CouponServiceTest {
 
     @BeforeEach
     void setup() {
+        setOperations = redisTemplate.opsForSet();
+
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+
         // 테스트 쿠폰 초기 데이터 추가
         testCoupon = Coupon.builder()
                 .name("Test Coupon")
@@ -42,7 +54,6 @@ public class CouponServiceTest {
 
         testCoupon = couponService.save(testCoupon); // Save 테스트 데이터를 DB에 저장
     }
-
 
     @Test
     @DisplayName("전체 쿠폰 페이징 목록 조회 성공")
@@ -84,7 +95,7 @@ public class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.assignCoupon(couponId, TEST_USER_ID))
-                .isInstanceOf(RuntimeException.class) // DomainException으로 변경 가능
+                .isInstanceOf(DomainException.class)
                 .hasMessageContaining("이미 해당 쿠폰을 발급받았습니다");
     }
 
@@ -104,7 +115,7 @@ public class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.assignCoupon(couponId, TEST_USER_ID))
-                .isInstanceOf(RuntimeException.class) // DomainException으로 변경 가능
+                .isInstanceOf(DomainException.class)
                 .hasMessageContaining("이미 만료된 쿠폰입니다");
     }
 
@@ -132,7 +143,7 @@ public class CouponServiceTest {
 
         // when & then
         assertThatThrownBy(() -> couponService.useCoupon(assignedCoupon.id(), ANOTHER_USER_ID))
-                .isInstanceOf(RuntimeException.class) // DomainException으로 변경 가능
+                .isInstanceOf(DomainException.class)
                 .hasMessageContaining("해당 사용자의 쿠폰이 아닙니다");
     }
 

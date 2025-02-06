@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -40,6 +41,11 @@ public class CouponAssignmentRepositoryImpl implements CouponAssignmentRepositor
     @Override
     public Page<CouponAssignment> findByUserId(String userId, Pageable pageable) {
         return jpaRepository.findByUserId(userId, pageable);
+    }
+
+    @Override
+    public List<CouponAssignment> findByCouponId(long id) {
+        return jpaRepository.findByCouponId(id);
     }
 
 }
