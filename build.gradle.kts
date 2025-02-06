@@ -48,6 +48,7 @@ dependencies {
 
 	// redis
 	implementation("org.redisson:redisson-spring-boot-starter:3.16.0")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
