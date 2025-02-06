@@ -118,7 +118,7 @@ public class PaymentFacade {
     private PaymentResponseDto toPaymentResponseDto(PaymentDomainDto domainDto) {
         return new PaymentResponseDto(
                 "unknown", // userId는 domainDto에 없으니 기본값 설정
-                domainDto.orderId().intValue(),
+                domainDto.orderId(),
                 domainDto.status().name()
         );
     }
