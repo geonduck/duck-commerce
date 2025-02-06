@@ -21,7 +21,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,7 +63,7 @@ public class PaymentFacadeTest {
 
         OrderResponse mockOrderResponse = new OrderResponse(orderId, userId, 1L, paymentAmount, 0.0, OrderStatus.PENDING, List.of());
 
-        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
+        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED);
 
         lenient().when(orderService.findOrderById(orderId)).thenReturn(mockOrder);
         when(orderService.findByOrderId(orderId)).thenReturn(mockOrderResponse);
@@ -90,8 +89,8 @@ public class PaymentFacadeTest {
         Long paymentId = 1L;
         Long orderId = 10L;
         double paymentAmount = 100.0;
-        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, paymentAmount, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
-        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
+        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, paymentAmount, PaymentStatus.PENDING);
+        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED);
 
         lenient().when(paymentService.getPayment(paymentId)).thenReturn(payment);
         when(orderService.getOrderItems(orderId)).thenReturn(List.of(
@@ -116,9 +115,9 @@ public class PaymentFacadeTest {
         Long paymentId = 1L;
         Long orderId = 1L;
         double paymentAmount = 100.0;
-        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, paymentAmount, PaymentStatus.PENDING, LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(3));
+        PaymentDomainDto payment = new PaymentDomainDto(paymentId, orderId, paymentAmount, PaymentStatus.PENDING);
         OrderResponse orderResponse = new OrderResponse(orderId, "userId", 1L, 400.0, 0.0, OrderStatus.PENDING, List.of());
-        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED, LocalDateTime.now(), LocalDateTime.now());
+        PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED);
 
         lenient().when(paymentService.getPayment(paymentId)).thenReturn(payment);
         when(orderService.findByOrderId(orderId)).thenReturn(orderResponse);
