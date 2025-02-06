@@ -4,11 +4,13 @@ import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import kr.hhplus.be.server.interfaces.coupon.dto.CouponRequestDto;
 import kr.hhplus.be.server.interfaces.coupon.dto.CouponResponseDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +27,15 @@ class CouponConcurrencyTest {
 
     @Autowired
     private CouponService couponService;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @BeforeEach
+    void setup() {
+        // Redis 데이터 초기화
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+    }
 
     @Test
     @DisplayName("동시에 여러 사용자가 동일 쿠폰 발급: maxIssuance 초과 금지")
@@ -158,5 +169,4 @@ class CouponConcurrencyTest {
         // then
         assertThat(issuedCount).isEqualTo(coupon.getMaxIssuance());
     }
-
 }

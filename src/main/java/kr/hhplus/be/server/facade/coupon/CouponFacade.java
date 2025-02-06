@@ -21,9 +21,13 @@ public class CouponFacade {
     private final CouponService couponService;
 
     @Transactional
+    public boolean requestCoupon(CouponRequestDto requestDto) {
+        return couponService.requestCoupon(requestDto.getCouponId(), requestDto.getUserId());
+    }
+
     @RedisLock(key = "#requestDto.userId() + ':' + #requestDto.couponId()", expiration = 60, keyPrefix = "coupon")
     public CouponResponseDto assignCoupon(CouponRequestDto requestDto) {
-        CouponAssignmentDto assignmentDto = couponService.assignCoupon(requestDto.couponId(), requestDto.userId());
+        CouponAssignmentDto assignmentDto = couponService.assignCoupon(requestDto.getCouponId(), requestDto.getUserId());
         return new CouponResponseDto(
                 assignmentDto.coupon().id(),
                 assignmentDto.coupon().name(),

@@ -16,6 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +38,15 @@ public class CouponServiceUnitTest {
 
     @Mock
     private CouponAssignmentRepository couponAssignmentRepository;
+
+    @Mock
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Mock
+    private SetOperations<String, Object> setOperations;
+
+    @Mock
+    private ZSetOperations<String, Object> zSetOperations;
 
 
     private static final String TEST_USER_ID = "testUser";
@@ -95,6 +107,7 @@ public class CouponServiceUnitTest {
         }
     }
 
+
     @Nested
     @DisplayName("쿠폰 발급 테스트")
     class AssignCouponTest {
@@ -105,8 +118,10 @@ public class CouponServiceUnitTest {
             // given
             Coupon coupon = createCoupon(TEST_COUPON_ID, "테스트 쿠폰", 1000, 10);
             when(couponRepository.findByIdWithLock(TEST_COUPON_ID)).thenReturn(Optional.of(coupon));
-            when(couponAssignmentRepository.countByCouponId(TEST_COUPON_ID)).thenReturn(5);
-            when(couponAssignmentRepository.existsByCouponIdAndUserId(TEST_COUPON_ID, TEST_USER_ID))
+            lenient().when(couponAssignmentRepository.countByCouponId(TEST_COUPON_ID)).thenReturn(5);
+            when(redisTemplate.opsForSet()).thenReturn(setOperations);
+            when(setOperations.size("coupon_assignment:" + TEST_COUPON_ID)).thenReturn(5L);
+            when(setOperations.isMember("coupon_assignment:" + TEST_COUPON_ID, TEST_USER_ID + ":" + TEST_COUPON_ID))
                     .thenReturn(false);
             CouponAssignment assignment = createCouponAssignment(1L, TEST_USER_ID, coupon, CouponStatus.ISSUED);
             when(couponAssignmentRepository.save(any(CouponAssignment.class)))
@@ -143,7 +158,8 @@ public class CouponServiceUnitTest {
             // given
             Coupon coupon = createCoupon(TEST_COUPON_ID, "테스트 쿠폰", 1000, 10);
             when(couponRepository.findByIdWithLock(TEST_COUPON_ID)).thenReturn(Optional.of(coupon));
-            when(couponAssignmentRepository.existsByCouponIdAndUserId(TEST_COUPON_ID, TEST_USER_ID))
+            when(redisTemplate.opsForSet()).thenReturn(setOperations);
+            when(setOperations.isMember("coupon_assignment:" + TEST_COUPON_ID, TEST_USER_ID + ":" + TEST_COUPON_ID))
                     .thenReturn(true);
 
             // when & then
