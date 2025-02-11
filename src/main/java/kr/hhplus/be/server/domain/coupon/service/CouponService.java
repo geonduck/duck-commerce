@@ -12,42 +12,84 @@ import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CouponService {
     private final CouponRepository couponRepository;
     private final CouponAssignmentRepository couponAssignmentRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private static final String COUPON_QUEUE_KEY_PREFIX = "coupon_queue:";
+    private static final String COUPON_ASSIGNMENT_KEY_PREFIX = "coupon_assignment:";
 
     @Transactional
     public CouponAssignmentDto assignCoupon(long id, String userId) {
-        Coupon coupon = findCouponById(id);
+        Coupon coupon = validateCoupon(id);
 
-        if (coupon.getExpiredAt() != null && coupon.getExpiredAt().isBefore(LocalDateTime.now())) {
-            throw new DomainException(CouponErrorCode.ALREADY_EXPIRED_EXCEPTION);
-        }
+        long issuedCount = getIssuedCount(id);
 
-        long issuedCount = countByCouponId(id);
         if (issuedCount >= coupon.getMaxIssuance()) {
             throw new DomainException(CouponErrorCode.MAX_COUPON_EXCEPTION);
         }
 
-        boolean alreadyAssigned = couponAssignmentRepository.existsByCouponIdAndUserId(id, userId);
-        if (alreadyAssigned) {
+        String redisKey = userId + ":" + id;
+        if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(COUPON_ASSIGNMENT_KEY_PREFIX + id, redisKey))) {
             throw new DomainException(CouponErrorCode.ALREADY_ISSUE_EXCEPTION);
         }
 
-        CouponAssignment assignment = CouponAssignment.builder()
+        CouponAssignment assignment = createCouponAssignment(coupon, userId);
+        CouponAssignmentDto result = CouponAssignmentDto.of(couponAssignmentRepository.save(assignment));
+        redisTemplate.opsForSet().add(COUPON_ASSIGNMENT_KEY_PREFIX + id, redisKey);
+        return result;
+    }
+
+    private Coupon validateCoupon(long id) {
+        Coupon coupon = findCouponById(id);
+        if (coupon.getExpiredAt() != null && coupon.getExpiredAt().isBefore(LocalDateTime.now())) {
+            throw new DomainException(CouponErrorCode.ALREADY_EXPIRED_EXCEPTION);
+        }
+        return coupon;
+    }
+
+    private long getIssuedCount(long id) {
+        Long issuedCount = redisTemplate.opsForSet().size(COUPON_ASSIGNMENT_KEY_PREFIX + id);
+        if (issuedCount == null) {
+            issuedCount = countByCouponId(id);
+        }
+        return issuedCount;
+    }
+
+    private CouponAssignment createCouponAssignment(Coupon coupon, String userId) {
+        return CouponAssignment.builder()
                 .userId(userId)
                 .coupon(coupon)
                 .status(CouponStatus.ISSUED)
                 .build();
+    }
 
-        return CouponAssignmentDto.of(couponAssignmentRepository.save(assignment));
+    public boolean requestCoupon(Long couponId, String userId) {
+        long issuedCount = getIssuedCount(couponId);
+        int maxIssuance = getMaxIssuance(couponId);
+
+        if (issuedCount >= maxIssuance) return false;
+
+        double timestamp = (double) System.currentTimeMillis(); // 요청 시간 기반 우선순위
+        redisTemplate.opsForZSet().add(COUPON_QUEUE_KEY_PREFIX + couponId, userId + ":" + couponId, timestamp);
+        return true;
+    }
+
+    private int getMaxIssuance(Long couponId) {
+        Coupon coupon = findCouponById(couponId);
+        return coupon.getMaxIssuance();
     }
 
     public long countByCouponId(long id) {
@@ -86,5 +128,35 @@ public class CouponService {
 
     public Coupon save(Coupon coupon) {
         return couponRepository.save(coupon);
+    }
+
+
+    public void syncIssuedCountWithDB(long id) {
+        Long issuedCount = redisTemplate.opsForSet().size(COUPON_ASSIGNMENT_KEY_PREFIX + id);
+        long dbIssuedCount = countByCouponId(id);
+
+        if (issuedCount == null || issuedCount != dbIssuedCount) {
+            List<CouponAssignment> assignments = couponAssignmentRepository.findByCouponId(id);
+            Set<String> dbKeys = assignments.stream()
+                    .map(assignment -> assignment.getUserId() + ":" + id)
+                    .collect(Collectors.toSet());
+
+            Set<Object> redisKeys = redisTemplate.opsForSet().members(COUPON_ASSIGNMENT_KEY_PREFIX + id);
+
+            // Redis에 없는 데이터를 추가
+            for (String dbKey : dbKeys) {
+                if (!redisKeys.contains(dbKey)) {
+                    redisTemplate.opsForSet().add(COUPON_ASSIGNMENT_KEY_PREFIX + id, dbKey);
+                }
+            }
+
+            // Redis에 있지만 DB에 없는 데이터를 제거
+            for (Object redisKey : redisKeys) {
+                if (!dbKeys.contains(redisKey)) {
+                    redisTemplate.opsForSet().remove(COUPON_ASSIGNMENT_KEY_PREFIX + id, redisKey);
+                }
+            }
+
+        }
     }
 }

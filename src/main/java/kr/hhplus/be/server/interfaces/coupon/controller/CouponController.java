@@ -47,11 +47,10 @@ public class CouponController {
     @Operation(summary = "쿠폰 발급 (assign)", description = "특정 유저의 쿠폰을 발급하는 기능",
             parameters = {@Parameter(name = "CouponRequestDto", description = "사용자 ID, 쿠폰 ID")})
     @PostMapping("/assign")
-    public ResponseEntity<ApiResponse<CouponResponseDto>> save(@RequestBody @Valid CouponRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<Boolean>> save(@RequestBody @Valid CouponRequestDto requestDto) {
         log.info("save start");
-        CouponResponseDto responseDto = couponFacade.assignCoupon(requestDto);
-
-        return ResponseEntity.ok(ApiResponse.success(responseDto));
+        boolean result = couponFacade.requestCoupon(requestDto);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     /**
