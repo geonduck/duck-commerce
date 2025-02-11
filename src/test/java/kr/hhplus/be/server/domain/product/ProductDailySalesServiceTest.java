@@ -32,9 +32,9 @@ class ProductDailySalesServiceTest {
         LocalDate threeDaysAgo = today.minusDays(3);
 
         List<ProductDailySales> mockSales = List.of(
-                new ProductDailySales(1L, 101L, today, 50, today.atStartOfDay()),
-                new ProductDailySales(2L, 102L, today.minusDays(1), 40, today.atStartOfDay()),
-                new ProductDailySales(3L, 103L, today.minusDays(2), 30, today.atStartOfDay())
+                new ProductDailySales(1L, 101L, today, 50),
+                new ProductDailySales(2L, 102L, today.minusDays(1), 40),
+                new ProductDailySales(3L, 103L, today.minusDays(2), 30)
         );
 
         when(productDailySalesRepository.findTopSellingProductsForPeriod(

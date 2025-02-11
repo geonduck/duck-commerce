@@ -1,10 +1,9 @@
 package kr.hhplus.be.server.domain.payment.entity;
 
 import jakarta.persistence.*;
+import kr.hhplus.be.server.domain.BaseTimeEntity;
 import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Payment {
+public class Payment extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,9 +23,5 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus; // 결제 상태
-
-    private LocalDateTime createdAt; // 생성일
-
-    private LocalDateTime updatedAt; // 수정일
 
 }

@@ -29,12 +29,10 @@ public class ProductDailySalesService {
                         .productId(productId)
                         .date(today)
                         .dailyQuantitySold(0)
-                        .lastUpdated(LocalDate.now().atStartOfDay())
                         .build());
 
         // 판매량 업데이트
         dailySales.setDailyQuantitySold(dailySales.getDailyQuantitySold() + quantitySold);
-        dailySales.setLastUpdated(LocalDate.now().atStartOfDay());
 
         // 저장
         productDailySalesRepository.save(dailySales);
@@ -43,8 +41,9 @@ public class ProductDailySalesService {
     public List<ProductDailySales> getTopSellingProductsForLast3Days() {
         LocalDate today = LocalDate.now();
         LocalDate threeDaysAgo = today.minusDays(3);
+        LocalDate yesterday = today.minusDays(1);
 
-        return productDailySalesRepository.findTopSellingProductsForPeriod(threeDaysAgo, today, PageRequest.of(0, 5));
+        return productDailySalesRepository.findTopSellingProductsForPeriod(threeDaysAgo, yesterday, PageRequest.of(0, 4));
     }
 
 }

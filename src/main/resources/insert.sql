@@ -1,5 +1,5 @@
-INSERT INTO hhplus.balance (id, created_date, modified_date, amount, user_id, version) VALUES (1, now(), now(), 0, 'geonduck', 1);
-INSERT INTO hhplus.balance (id, created_date, modified_date, amount, user_id, version) VALUES (2, now(), now(), 0, 'user1', 1);
+INSERT INTO hhplus.balance (id, created_date, modified_date, amount, user_id) VALUES (1, now(), now(), 0, 'geonduck');
+INSERT INTO hhplus.balance (id, created_date, modified_date, amount, user_id) VALUES (2, now(), now(), 0, 'user1');
 INSERT INTO hhplus.coupon (id, created_date, modified_date, discount_amount, expired_at, max_issuance, name) VALUES (1, now(), now(), 5000, '2025-01-30 01:36:05.000000', 20, '5천원할인');
 INSERT INTO hhplus.coupon (id, created_date, modified_date, discount_amount, expired_at, max_issuance, name) VALUES (2, now(), now(), 3000, '2025-01-30 01:36:05.000000', 15, '3천원할인');
 INSERT INTO hhplus.coupon (id, created_date, modified_date, discount_amount, expired_at, max_issuance, name) VALUES (3, now(), now(), 7000, '2025-01-30 01:36:05.000000', 30, '7천원할인');
@@ -7,7 +7,7 @@ INSERT INTO hhplus.product (id, created_date, modified_date, name, price) VALUES
 INSERT INTO hhplus.product (id, created_date, modified_date, name, price) VALUES (2, now(), now(), '호민이의찹쌀떡', 8000);
 INSERT INTO hhplus.product (id, created_date, modified_date, name, price) VALUES (3, now(), now(), '재영이의모자', 6500);
 INSERT INTO hhplus.product (id, created_date, modified_date, name, price) VALUES (4, now(), now(), '희으니의단팥빵', 5000);
-INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity, version) VALUES (1, now(), now(), 1, 5, 1);
-INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity, version) VALUES (2, now(), now(), 2, 25, 1);
-INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity, version) VALUES (3, now(), now(), 3, 20, 1);
-INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity, version) VALUES (4, now(), now(), 4, 15, 1);
+INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity) VALUES (1, now(), now(), 1, 5);
+INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity) VALUES (2, now(), now(), 2, 25);
+INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity) VALUES (3, now(), now(), 3, 20);
+INSERT INTO hhplus.stock (id, created_date, modified_date, product_id, quantity) VALUES (4, now(), now(), 4, 15);

@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +23,6 @@ public class PaymentService {
                 .orderId(orderId)
                 .paymentAmount(paymentAmount)
                 .paymentStatus(PaymentStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
@@ -37,7 +34,6 @@ public class PaymentService {
         Payment payment = findPaymentById(paymentId);
 
         payment.setPaymentStatus(status);
-        payment.setUpdatedAt(LocalDateTime.now());
         return PaymentDomainDto.of(paymentRepository.save(payment));
     }
 
