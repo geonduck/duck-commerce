@@ -11,6 +11,8 @@ import kr.hhplus.be.server.domain.payment.PaymentStatus;
 import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
+import kr.hhplus.be.server.facade.payment.event.PaymentCompletedEvent;
+import kr.hhplus.be.server.facade.payment.event.PaymentEventListener;
 import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
@@ -21,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 
@@ -45,13 +48,19 @@ public class PaymentFacadeTest {
     @Mock
     private OrderEventSender orderEventSender;
 
+    @Mock
+    private PaymentEventListener paymentEventListener;
+
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
+
     @InjectMocks
     private PaymentFacade paymentFacade;
 
     @BeforeEach
     void setup() {
         // 데이터베이스 초기화
-        reset(paymentService, orderService, balanceService, productDailySalesService, orderEventSender);
+        reset(paymentService, orderService, balanceService, productDailySalesService, orderEventSender, paymentEventListener, applicationEventPublisher);
     }
 
     @Test
@@ -84,6 +93,7 @@ public class PaymentFacadeTest {
         verify(balanceService).use(new BalanceDomainDto(userId, paymentAmount));
         verify(paymentService).createPayment(orderId, paymentAmount);
         verify(paymentService).updatePaymentStatus(mockPayment.id(), PaymentStatus.COMPLETED);
+        verify(applicationEventPublisher, times(1)).publishEvent(any(PaymentCompletedEvent.class));
 
         assertThat(response.orderId()).isEqualTo(orderId.intValue());
         assertThat(response.status()).isEqualTo("COMPLETED");
@@ -113,6 +123,7 @@ public class PaymentFacadeTest {
         verify(paymentService).updatePaymentStatus(paymentId, PaymentStatus.COMPLETED);
         verify(orderService).updateOrderStatus(orderId, OrderStatus.COMPLETED);
         verify(productDailySalesService, times(1)).updateDailySales(101L, 5);
+        verify(applicationEventPublisher, times(1)).publishEvent(any(PaymentCompletedEvent.class));
     }
 
     @Test
@@ -127,13 +138,14 @@ public class PaymentFacadeTest {
         PaymentDomainDto mockPayment = new PaymentDomainDto(1L, orderId, paymentAmount, PaymentStatus.COMPLETED);
 
         lenient().when(paymentService.getPayment(paymentId)).thenReturn(payment);
-        when(orderService.findByOrderId(orderId)).thenReturn(orderResponse);
+        lenient().when(orderService.findByOrderId(orderId)).thenReturn(orderResponse);
         when(paymentService.updatePaymentStatus(mockPayment.id(), PaymentStatus.COMPLETED)).thenReturn(mockPayment);
 
         // when
         paymentFacade.updatePaymentStatus(payment, PaymentStatus.COMPLETED);
 
         // then
-        verify(orderEventSender, times(1)).send(orderResponse);
+
+        verify(applicationEventPublisher, times(1)).publishEvent(any(PaymentCompletedEvent.class));
     }
 }

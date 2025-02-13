@@ -11,10 +11,12 @@ import kr.hhplus.be.server.domain.payment.dto.PaymentDomainDto;
 import kr.hhplus.be.server.domain.payment.service.PaymentService;
 import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import kr.hhplus.be.server.facade.FacadeException;
+import kr.hhplus.be.server.facade.payment.event.PaymentCompletedEvent;
 import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,7 @@ public class PaymentFacade {
     private final BalanceService balanceService;
     private final ProductDailySalesService productDailySalesService;
     private final OrderEventSender orderEventSender;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 유저의 주문을 가져와 결제를 생성
@@ -46,7 +49,7 @@ public class PaymentFacade {
         // 2. 결제 생성
         PaymentDomainDto payment = paymentService.createPayment(requestDto.orderId(), paymentAmount);
 
-        PaymentStatus status = PaymentStatus.PENDING;;
+        PaymentStatus status = PaymentStatus.COMPLETED;;
 
         try{
             // 3. 유저의 잔액 차감
@@ -83,7 +86,7 @@ public class PaymentFacade {
         // 2. 결제 완료 후 추가 비즈니스 로직 실행 (ProductDailySales 갱신)
         if (status == PaymentStatus.COMPLETED) {
             reflectDailySales(payment);
-            sendOrderEvent(payment);
+            applicationEventPublisher.publishEvent(new PaymentCompletedEvent(this, payment.orderId()));
         }
         return payment;
     }
@@ -105,11 +108,6 @@ public class PaymentFacade {
         for (OrderItemResponse item : orderItems) {
             productDailySalesService.updateDailySales(item.productId(), item.amount());
         }
-    }
-
-    private void sendOrderEvent(PaymentDomainDto payment) {
-        OrderResponse orderResponse = orderService.findByOrderId(payment.orderId());
-        orderEventSender.send(orderResponse);
     }
 
     /**
