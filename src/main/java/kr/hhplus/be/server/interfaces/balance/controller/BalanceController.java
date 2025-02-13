@@ -12,11 +12,13 @@ import kr.hhplus.be.server.interfaces.balance.dto.BalanceResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/v1/balance")
 @Tag(name = "잔액 관련 API", description = "잔액 관련 REST API에 대한 명세를 재공 합니다")
 public class BalanceController {

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import kr.hhplus.be.server.config.http.ApiResponse;
 import kr.hhplus.be.server.facade.payment.PaymentFacade;
@@ -12,11 +13,13 @@ import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/v1/payments")
 @Tag(name = "결제 관련 API", description = "결제 관련 REST API에 대한 명세를 재공 합니다")
 public class PaymentController {
@@ -30,7 +33,8 @@ public class PaymentController {
             parameters = {@Parameter(name = "paymentId", description = "결제 ID")})
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(
-            @PathVariable(name = "paymentId") @NotNull(message = "주문 ID는 필수입니다.") Long paymentId
+            @PathVariable(name = "paymentId") @NotNull(message = "주문 ID는 필수입니다.")
+            @Min(value = 1, message = "결제 ID는 1 이상이어야 합니다.") Long paymentId
     ) {
         log.info("getPayment start");
         PaymentResponseDto response = paymentFacade.getPayment(paymentId);

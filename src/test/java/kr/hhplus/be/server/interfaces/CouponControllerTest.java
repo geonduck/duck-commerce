@@ -14,7 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,7 +81,6 @@ public class CouponControllerTest {
 
     @Test
     @DisplayName("유효한 요청으로 쿠폰 발급 시도 시 200 반환")
-    @Sql({"/insert.sql"})
     public void save_ValidRequest_ShouldReturn200() throws Exception {
         // 올바른 요청 데이터
         CouponRequestDto validRequest = new CouponRequestDto("user1", testCoupon.getId());
