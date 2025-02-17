@@ -14,6 +14,7 @@ import kr.hhplus.be.server.domain.product.service.ProductDailySalesService;
 import kr.hhplus.be.server.infrastructure.event.OrderEventSender;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentRequestDto;
 import kr.hhplus.be.server.interfaces.payment.dto.PaymentResponseDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +47,12 @@ public class PaymentFacadeTest {
 
     @InjectMocks
     private PaymentFacade paymentFacade;
+
+    @BeforeEach
+    void setup() {
+        // 데이터베이스 초기화
+        reset(paymentService, orderService, balanceService, productDailySalesService, orderEventSender);
+    }
 
     @Test
     @DisplayName("결제 생성 테스트 - 정상 흐름")

@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.DomainException;
 import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
@@ -31,7 +33,8 @@ public class CouponServiceTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private SetOperations<String, Object> setOperations;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String TEST_USER_ID = "testUser";
     private static final String ANOTHER_USER_ID = "anotherUser";
@@ -40,9 +43,13 @@ public class CouponServiceTest {
 
     @BeforeEach
     void setup() {
-        setOperations = redisTemplate.opsForSet();
 
         redisTemplate.getConnectionFactory().getConnection().flushAll();
+
+        // 데이터베이스 초기화
+        entityManager.createQuery("DELETE FROM CouponAssignment").executeUpdate();
+        entityManager.createQuery("DELETE FROM Coupon").executeUpdate();
+        entityManager.flush();
 
         // 테스트 쿠폰 초기 데이터 추가
         testCoupon = Coupon.builder()

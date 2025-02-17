@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.facade.order;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import kr.hhplus.be.server.domain.coupon.dto.CouponAssignmentDto;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
@@ -23,6 +25,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.reset;
 
 @SpringBootTest
 @Transactional
@@ -49,8 +52,17 @@ public class OrderFacadeIntegrationTest {
 
     private Long assignmentId;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @BeforeEach
     void setup() {
+
+        // 데이터베이스 초기화
+        entityManager.createQuery("DELETE FROM Order").executeUpdate();
+        entityManager.createQuery("DELETE FROM OrderItem").executeUpdate();
+        entityManager.flush();
+
         // 상품 데이터 초기화
         Product productA = Product.builder()
                 .name("상품 A")

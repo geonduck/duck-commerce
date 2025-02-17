@@ -12,6 +12,7 @@ import kr.hhplus.be.server.interfaces.order.dto.OrderResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/v1/orders")
 @Tag(name = "주문 관련 API", description = "주문 관련 REST API에 대한 명세를 재공 합니다")
 public class OrderController {

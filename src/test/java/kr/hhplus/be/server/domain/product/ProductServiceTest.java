@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.product;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import kr.hhplus.be.server.domain.DomainException;
 import kr.hhplus.be.server.domain.product.dto.ProductDomainDto;
 import kr.hhplus.be.server.domain.product.dto.ProductListDto;
@@ -35,11 +37,20 @@ public class ProductServiceTest {
     @Autowired
     private StockService stockService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private Long testProductId;
     private int initialStockQuantity;
 
     @BeforeEach
     void setup() {
+
+        // 데이터베이스 초기화
+        entityManager.createQuery("DELETE FROM Product").executeUpdate();
+        entityManager.createQuery("DELETE FROM Stock").executeUpdate();
+        entityManager.flush();
+
         // Given: 상품과 재고 초기 데이터 생성
         Product product = Product.builder()
                 .name("테스트 상품")
