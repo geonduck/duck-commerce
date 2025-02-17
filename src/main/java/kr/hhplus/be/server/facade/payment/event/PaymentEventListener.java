@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
@@ -18,7 +19,7 @@ public class PaymentEventListener {
     private final OrderEventSender orderEventSender;
 
     @Async
-    @TransactionalEventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentCompleted(PaymentCompletedEvent event) {
         try {
             OrderResponse orderResponse = orderService.findByOrderId(event.getOrderId());
