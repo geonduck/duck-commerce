@@ -31,7 +31,13 @@ spring:
         max-idle: 8
         min-idle: 0
         max-wait: -1
-
+  # 카프카 설정
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+      group-id: member-group
+    producer:
+      bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
 ---
 spring.config.activate.on-profile: local, test
 spring.log.file-path: C:\logs\logback.log
