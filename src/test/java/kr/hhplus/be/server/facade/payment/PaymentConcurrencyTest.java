@@ -85,8 +85,6 @@ class PaymentConcurrencyTest {
         long successCount = results.stream().filter(result -> result.startsWith("Success")).count();
         long failureCount = results.stream().filter(result -> result.startsWith("Failed")).count();
 
-        System.out.println("Results: " + results);
-
         // 1. 성공 건수는 최대 테스트 데이터를 기반으로 검증합니다.
         assertThat(successCount).isEqualTo(1); // 동일 주문에 대해 하나의 결제만 가능해야 함
         // 2. 실패 건수는 나머지 요청 수와 같아야 합니다.
