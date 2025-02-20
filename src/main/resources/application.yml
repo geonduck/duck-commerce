@@ -33,11 +33,15 @@ spring:
         max-wait: -1
   # 카프카 설정
   kafka:
+    bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
     consumer:
-      bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
-      group-id: member-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: order-group
+      auto-offset-reset: earliest
     producer:
-      bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 ---
 spring.config.activate.on-profile: local, test
 spring.log.file-path: C:\logs\logback.log
