@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.coupon.scheduler;
 import kr.hhplus.be.server.domain.DomainException;
 import kr.hhplus.be.server.domain.coupon.service.CouponService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CouponScheduler {
 
     private final CouponService couponService;
@@ -36,7 +38,7 @@ public class CouponScheduler {
                         couponService.assignCoupon(couponId, userId);
                     } catch (DomainException e) {
                         // 쿠폰 발급 실패 시 로그 출력
-                        System.out.println("쿠폰 발급 실패: " + e.getMessage());
+                        log.error("쿠폰 발급 실패: " + e.getMessage());
                     } finally {
                         redisTemplate.opsForZSet().remove(couponQueueKey, userCoupon);
                     }
