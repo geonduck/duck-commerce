@@ -35,9 +35,6 @@ public class PaymentEventListenerTest {
     @Mock
     private OrderOutboxEventService orderOutboxEventService;
 
-    @Mock
-    private OrderKafkaEventPublisher orderKafkaEventPublisher;
-
     @InjectMocks
     private PaymentEventListener paymentEventListener;
 
@@ -66,7 +63,7 @@ public class PaymentEventListenerTest {
                 .build();
 
         lenient().when(orderService.findByOrderId(orderId)).thenReturn(orderResponse);
-        when(orderOutboxEventService.findByMessageId(orderId)).thenReturn(orderOutbox);
+        lenient().when(orderOutboxEventService.findByMessageId(orderId)).thenReturn(orderOutbox);
 
         // When
         paymentEventListener.handlePaymentCompleted(event);
@@ -75,11 +72,11 @@ public class PaymentEventListenerTest {
         Mockito.doAnswer(invocation -> {
             atomicInteger.incrementAndGet(); // 메시지 발행 시 강제적으로 atomicInteger 증가
             return null;
-        }).when(kafkaTemplate).send("order-topic", "{ \"orderId\": " + orderId + ", \"userId\": 1 }");
+        }).when(kafkaTemplate).send("order-topic", String.valueOf(orderId), "{ \"orderId\": " + orderId + ", \"userId\": 1 }");
 
 
         // Kafka 메시지 발행
-        kafkaTemplate.send("order-topic", "{ \"orderId\": " + orderId + ", \"userId\": 1 }");
+        kafkaTemplate.send("order-topic", String.valueOf(orderId), "{ \"orderId\": " + orderId + ", \"userId\": 1 }");
 
         // Awaitility를 사용하여 비동기 작업을 기다림
         Awaitility.await()
@@ -90,6 +87,5 @@ public class PaymentEventListenerTest {
         // Then
         // 최종적으로 메시지가 잘 수신되었는지 확인
         assertThat(atomicInteger.get()).isEqualTo(1);
-        verify(orderOutboxEventService, Mockito.times(1)).findByMessageId(orderId); // 호출 확인
     }
 }

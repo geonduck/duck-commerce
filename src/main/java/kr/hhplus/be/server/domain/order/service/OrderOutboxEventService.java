@@ -1,7 +1,6 @@
 package kr.hhplus.be.server.domain.order.service;
 
 import kr.hhplus.be.server.domain.order.OrderEventStatus;
-import kr.hhplus.be.server.domain.order.dto.OrderResponse;
 import kr.hhplus.be.server.domain.order.entity.OrderOutbox;
 import kr.hhplus.be.server.domain.order.repository.OrderOutboxRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,15 +13,7 @@ import java.util.List;
 public class OrderOutboxEventService {
     private final OrderOutboxRepository orderOutboxRepository;
 
-    public void saveOutboxEvent(OrderResponse orderResponse) {
-        OrderOutbox orderOutbox = OrderOutbox.builder()
-                .messageId(orderResponse.orderId())
-                .topic("order-topic")
-                .payload("{ \"orderId\": " + orderResponse.orderId()
-                        + ", \"userId\": "+ orderResponse.userId()
-                        + " }")
-                .status(OrderEventStatus.NEW)
-                .build();
+    public void saveOutboxEvent(OrderOutbox orderOutbox) {
         orderOutboxRepository.save(orderOutbox);
     }
 

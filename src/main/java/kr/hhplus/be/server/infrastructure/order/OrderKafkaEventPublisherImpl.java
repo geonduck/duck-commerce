@@ -19,7 +19,7 @@ public class OrderKafkaEventPublisherImpl implements OrderKafkaEventPublisher {
         if(orderOutbox.getStatus() != OrderEventStatus.NEW) {
             return;
         }
-        kafkaTemplate.send(orderOutbox.getTopic(), orderOutbox.getPayload());
+        kafkaTemplate.send(orderOutbox.getTopic(), String.valueOf(orderOutbox.getMessageId()), orderOutbox.getPayload());
         orderOutboxEventService.updateSendStatus(orderOutbox.getMessageId());
     }
 }
