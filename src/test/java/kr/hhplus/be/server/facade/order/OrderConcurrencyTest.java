@@ -87,7 +87,6 @@ class OrderConcurrencyTest {
         long successCount = results.stream().filter(r -> r.startsWith("Success")).count();
         long failureCount = results.stream().filter(r -> r.startsWith("Failed")).count();
 
-        System.out.println("Results: " + results);
         // 최대 성공한 주문 갯수는 재고 수량과 같아야 합니다.
         assertThat(successCount).isEqualTo(10); // 초기 재고 10개
         assertThat(failureCount).isEqualTo(10); // 실패 요청 갯수는 남은 스레드 수만큼

@@ -75,7 +75,6 @@ class ProductConcurrencyTest {
         long successCount = results.stream().filter(r -> r.equals("Success")).count();
         long failureCount = results.stream().filter(r -> r.startsWith("Failed")).count();
 
-        System.out.println("Results: " + results);
         assertThat(successCount).isEqualTo(threadCount);
         assertThat(failureCount).isEqualTo(0);
 
@@ -113,8 +112,6 @@ class ProductConcurrencyTest {
         long successCount = results.stream().filter(r -> r.equals("Success")).count();
         long failureCount = results.stream().filter(r -> r.startsWith("Failed")).count();
 
-        System.out.println("Results: " + results);
-
         assertThat(successCount).isEqualTo(expectedQuantity);
         assertThat(failureCount).isEqualTo(threadCount - expectedQuantity);
 
@@ -145,7 +142,6 @@ class ProductConcurrencyTest {
         long successCount = results.stream().filter(r -> r != null).count();
         long failureCount = results.stream().filter(r -> r == null).count();
 
-        System.out.println("Results: " + results);
         assertThat(successCount).isEqualTo(threadCount);
         assertThat(failureCount).isEqualTo(0);
 
@@ -212,7 +208,6 @@ class ProductConcurrencyTest {
         long retrieveSuccessCount = results.stream().filter(r -> r.startsWith("Retrieve Success")).count();
         long failureCount = results.stream().filter(r -> r.contains("Failed")).count();
 
-        System.out.println("Results: " + results);
         assertThat(decreaseSuccessCount).isEqualTo(decreaseThreads);
         assertThat(increaseSuccessCount).isEqualTo(increaseThreads);
         assertThat(retrieveSuccessCount).isEqualTo(retrieveThreads);
