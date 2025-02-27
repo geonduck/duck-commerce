@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.coupon.service;
 
+import kr.hhplus.be.server.config.redis.Cacheable;
 import kr.hhplus.be.server.domain.DomainException;
 import kr.hhplus.be.server.domain.coupon.CouponErrorCode;
 import kr.hhplus.be.server.domain.coupon.CouponStatus;
@@ -10,6 +11,7 @@ import kr.hhplus.be.server.domain.coupon.entity.CouponAssignment;
 import kr.hhplus.be.server.domain.coupon.repository.CouponAssignmentRepository;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CouponService {
     private final CouponRepository couponRepository;
     private final CouponAssignmentRepository couponAssignmentRepository;
@@ -33,6 +36,7 @@ public class CouponService {
 
     @Transactional
     public CouponAssignmentDto assignCoupon(long id, String userId) {
+        log.info("assignCoupon start");
         Coupon coupon = validateCoupon(id);
 
         long issuedCount = getIssuedCount(id);
@@ -84,6 +88,7 @@ public class CouponService {
 
         double timestamp = (double) System.currentTimeMillis(); // 요청 시간 기반 우선순위
         redisTemplate.opsForZSet().add(COUPON_QUEUE_KEY_PREFIX + couponId, userId + ":" + couponId, timestamp);
+        log.info("쿠폰 발급 요청: userId=" + userId + ", couponId=" + couponId + ", timestamp=" + timestamp);
         return true;
     }
 
@@ -96,6 +101,7 @@ public class CouponService {
         return couponAssignmentRepository.countByCouponId(id);
     }
 
+    @Cacheable(key = "#id", ttl = 60)
     private Coupon findCouponById(Long id) {
         return couponRepository.findByIdWithLock(id).orElseThrow(() -> new DomainException(CouponErrorCode.NOT_FIND_EXCEPTION));
     }

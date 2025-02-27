@@ -23,6 +23,7 @@ public class CouponScheduler {
 
     @Scheduled(fixedDelay = 1000)
     public void processCouponQueue() {
+        log.info("쿠폰 큐 처리 시작");
         Set<String> couponIds = redisTemplate.keys(COUPON_QUEUE_KEY + "*");
         if (couponIds != null) {
             for (String couponQueueKey : couponIds) {
@@ -36,6 +37,7 @@ public class CouponScheduler {
 
                     try {
                         couponService.assignCoupon(couponId, userId);
+                        log.info("쿠폰 발급 성공: userId=" + userId + ", couponId=" + couponId);
                     } catch (DomainException e) {
                         // 쿠폰 발급 실패 시 로그 출력
                         log.error("쿠폰 발급 실패: " + e.getMessage());
@@ -54,6 +56,7 @@ public class CouponScheduler {
             long expirationTime = System.currentTimeMillis() - (5 * 60 * 1000); // 5분 전 기준
             for (String couponQueueKey : couponIds) {
                 redisTemplate.opsForZSet().removeRangeByScore(couponQueueKey, 0, expirationTime);
+                log.info("쿠폰 큐 청소 완료: " + couponQueueKey);
             }
         }
     }
@@ -65,6 +68,7 @@ public class CouponScheduler {
             for (String couponQueueKey : couponIds) {
                 Long couponId = Long.parseLong(couponQueueKey.replace(COUPON_QUEUE_KEY, ""));
                 couponService.syncIssuedCountWithDB(couponId);
+                log.info("발급 카운트 동기화 완료: couponId=" + couponId);
             }
         }
     }
