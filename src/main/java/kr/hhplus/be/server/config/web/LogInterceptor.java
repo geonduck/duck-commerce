@@ -14,17 +14,17 @@ public class LogInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession();
         if(session != null) {
-            log.info("SESSION ID: [{}]", session.getId());
+            log.debug("SESSION ID: [{}]", session.getId());
         }
 
-        log.info("[REQUEST] URI: {}, Method: {}, RemoteAddr: {}",
+        log.debug("[REQUEST] URI: {}, Method: {}, RemoteAddr: {}",
                 request.getRequestURI(), request.getMethod(), request.getRemoteAddr());
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        log.info("[RESPONSE] URI: {}, Method: {}, Status: {}",
+        log.debug("[RESPONSE] URI: {}, Method: {}, Status: {}",
                 request.getRequestURI(), request.getMethod(), response.getStatus());
     }
 

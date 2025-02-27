@@ -6,10 +6,15 @@ spring:
   datasource:
     name: HangHaePlusDataSource
     type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3396/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+    username: application
+    password: application
     hikari:
-      maximum-pool-size: 30
-      connection-timeout: 10000
+      maximum-pool-size: 200
+      connection-timeout: 30000
       max-lifetime: 60000
+      idle-timeout: 45000
+      minimum-idle: 50
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     open-in-view: false
@@ -31,9 +36,12 @@ spring:
         max-idle: 8
         min-idle: 0
         max-wait: -1
+  cache:
+    redis:
+      time-to-live: 1800000 # 30분 TTL
   # 카프카 설정
   kafka:
-    bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+    bootstrap-servers: localhost:10002
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -43,14 +51,14 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 ---
+
+order:
+  outbox:
+    topic: order-topic
+
+
 spring.config.activate.on-profile: local, test
 spring.log.file-path: C:\logs\logback.log
-
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3396/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
-    username: application
-    password: application
 
 springdoc:
   override-with-generic-response: true
@@ -68,3 +76,7 @@ springdoc:
 spring.jpa.properties.hibernate.connection.isolation: 2
 logging.level.com.zaxxer.hikari.HikariConfig: DEBUG
 logging.level.com.zaxxer.hikari.HikariPool: DEBUG
+
+logging.level.org.hibernate: INFO
+logging.level.org.springframework: INFO
+logging.level.java.lang: DEBUG
